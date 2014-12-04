@@ -17,5 +17,27 @@ executable horbits
   other-modules:   
                    Horbits.DimLin,
                    Horbits.Orbit,
-                   Horbits.Quantities
+                   Horbits.Quantities,
+                   Horbits.Types
+
+test-suite HorbitsTests
+  type:            exitcode-stdio-1.0
+  main-is:         HorbitsTests.hs
+  ghc-options:     -Wall -rtsopts
+  build-depends:   base >= 4, 
+                   HTF >= 0.12.2.3 && < 0.13,
+                   QuickCheck >= 2.7.6 && < 2.8,
+                   rematch >= 0.2.0.0 && < 0.3 
+  other-modules:   
+                  Horbits.DimLin,
+                  Horbits.Orbit,
+                  Horbits.OrbitTest,
+                  Horbits.Quantities,
+                  Horbits.Types,
+                  Horbits.OrbitEq,
+                  Horbits.OrbitSample,
+                  Horbits.Rematch
+  hs-source-dirs:  
+                  src,
+                  testsuite
 

@@ -4,20 +4,60 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 
-module Horbits.DimLin where
+module Horbits.DimLin(Horbits.DimLin.atan2, _x, _y, _z, _xy, _yx, zero, (^+^), (^-^), (^*), (*^), (^/), (*.),
+  dot, quadrance, qd, distance, Horbits.DimLin.mod, norm, signorm, normalize, project, rotate, rotX, rotZ, v2, v3,
+  V1, V2, V3) where
 
+import           Control.Lens              hiding ((*~))
+import qualified Data.Fixed                as DF
 import           Linear                    (Epsilon)
-import qualified Linear.Metric             as M
+import           Linear.Conjugate          (Conjugate)
+import qualified Linear.Metric             as N
+import qualified Linear.Quaternion         as Q
+import           Linear.V1                 (R1, V1)
+import qualified Linear.V1                 as V1 (_x)
+import           Linear.V2                 (R2, V2 (..))
+import qualified Linear.V2                 as V2 (_xy, _y, _yx)
+import           Linear.V3                 (R3, V3 (..))
+import qualified Linear.V3                 as V3 (_z)
 import qualified Linear.Vector             as V
 import           Numeric.NumType           (Pos2, pos2)
-import           Numeric.Units.Dimensional (Dimensional (..), Dimensionless,
-                                            Div, Mul, Pow, Quantity)
-import           Prelude                   hiding ((*), (/))
+import           Numeric.Units.Dimensional (DOne, Dimensional (..),
+                                            Dimensionless, Div, Mul, Pow,
+                                            Quantity, one, (*), (*~))
+import           Prelude                   hiding ((*))
 
 infixl 6 ^+^, ^-^
 infixl 7 ^*, *^, ^/
+infixl 7 *.
+
+(*.) :: (Mul DOne d d, Num a) => a -> Quantity d a -> Quantity d a
+a *. q = (a *~ one) * q
 
 -- Lifts
+
+-- lenses
+
+isoDim :: Iso' a (Dimensional v d a)
+isoDim = iso Dimensional undim
+  where undim (Dimensional a) = a
+
+_x :: (R1 f) => Lens' (Quantity d (f a)) (Quantity d a)
+_x = from isoDim . V1._x . isoDim
+
+_y :: (R2 f) => Lens' (Quantity d (f a)) (Quantity d a)
+_y = from isoDim . V2._y . isoDim
+
+_xy :: (R2 f) => Lens' (Quantity d (f a)) (Quantity d (V2 a))
+_xy = from isoDim . V2._xy . isoDim
+
+_yx :: (R2 f) => Lens' (Quantity d (f a)) (Quantity d (V2 a))
+_yx = from isoDim . V2._yx . isoDim
+
+_z :: (R3 f) => Lens' (Quantity d (f a)) (Quantity d a)
+_z = from isoDim . V3._z . isoDim
+
+-- Applicative-like lifts
 
 type DF1 v d d' a b = (a -> b) -> Dimensional v d a -> Dimensional v d' b
 
@@ -45,9 +85,22 @@ liftDM2 = liftD2
 liftDD2 :: (Div d d' d'') => DF2 v d d' d'' a b c
 liftDD2 = liftD2
 
+-- Real modulo
+
+mod :: (Real a) => Quantity d a -> Quantity d a -> Quantity d a
+mod = liftDA2 DF.mod'
+
+-- Trig
+
+atan2 :: RealFloat a =>
+            Quantity d a -> Quantity d a -> Dimensionless a
+atan2 (Dimensional y) (Dimensional x) = Dimensional $ atan2' y x
+  where atan2' y' (-0) = Prelude.atan2 y' 0
+        atan2' y' x' = Prelude.atan2 y' x'
+
 -- Vector
 
-zero :: (V.Additive f, Num a) => Dimensional v d (f a)
+zero :: (V.Additive f, Num a) => Quantity d (f a)
 zero = Dimensional V.zero
 
 (^+^) :: (V.Additive f, Num a) => Quantity d (f a) -> Quantity d (f a) -> Quantity d (f a)
@@ -65,28 +118,49 @@ zero = Dimensional V.zero
 (^/) :: (Fractional a, Functor f, Div d d' d'') => Quantity d (f a) -> Quantity d' a -> Quantity d'' (f a)
 (^/) = liftDD2 (V.^/)
 
+v2 :: Quantity d a -> Quantity d a -> Quantity d (V2 a)
+v2 (Dimensional x) (Dimensional y) = Dimensional $ V2 x y
+
+v3 :: Quantity d a -> Quantity d a -> Quantity d a -> Quantity d (V3 a)
+v3 (Dimensional x) (Dimensional y) (Dimensional z) = Dimensional $ V3 x y z
+
 -- Metric
 
-dot :: (M.Metric f, Num a, Mul d d' d'') => Dimensional v d (f a) -> Dimensional v d' (f a) -> Dimensional v d'' a
-dot = liftDM2 M.dot
+dot :: (N.Metric f, Num a, Mul d d' d'') => Quantity d (f a) -> Quantity d' (f a) -> Quantity d'' a
+dot = liftDM2 N.dot
 
-quadrance :: (M.Metric f, Num a, Pow d Pos2 d') => Dimensional v d (f a) -> Dimensional v d' a
-quadrance = liftDPow pos2 M.quadrance
+quadrance :: (N.Metric f, Num a, Pow d Pos2 d') => Quantity d (f a) -> Quantity d' a
+quadrance = liftDPow pos2 N.quadrance
 
-qd :: (M.Metric f, Num a, Pow d Pos2 d') => Dimensional v d (f a) -> Dimensional v d (f a) -> Dimensional v d' a
-qd = liftD2 M.qd
+qd :: (N.Metric f, Num a, Pow d Pos2 d') => Quantity d (f a) -> Quantity d (f a) -> Quantity d' a
+qd = liftD2 N.qd
 
-distance :: (M.Metric f, Floating a) => Dimensional v d (f a) -> Dimensional v d (f a) -> Dimensional v d a
-distance = liftDA2 M.distance
+distance :: (N.Metric f, Floating a) => Quantity d (f a) -> Quantity d (f a) -> Quantity d a
+distance = liftDA2 N.distance
 
-norm :: (M.Metric f, Floating a) => Dimensional v d (f a) -> Dimensional v d a
-norm = liftDLin M.norm
+norm :: (N.Metric f, Floating a) => Quantity d (f a) -> Quantity d a
+norm = liftDLin N.norm
 
-signorm :: (M.Metric f, Floating a) => Dimensional v d (f a) -> Dimensional v d (f a)
-signorm = liftDLin M.signorm
+signorm :: (N.Metric f, Floating a) => Quantity d (f a) -> Quantity d (f a)
+signorm = liftDLin N.signorm
 
-normalize :: (M.Metric f, Floating a, Epsilon a) => Dimensionless (f a) -> Dimensionless (f a)
-normalize = fmap M.normalize
+normalize :: (N.Metric f, Floating a, Epsilon a) => Dimensionless (f a) -> Dimensionless (f a)
+normalize = fmap N.normalize
 
-project :: (M.Metric f, Fractional a) => Dimensional v d (f a) -> Dimensional v d (f a) -> Dimensional v d (f a)
-project = liftDA2 M.project
+project :: (N.Metric f, Fractional a) => Quantity d (f a) -> Quantity d (f a) -> Quantity d (f a)
+project = liftDA2 N.project
+
+-- Quaternion
+
+rotate :: (Linear.Conjugate.Conjugate a, RealFloat a) =>
+          Dimensionless (Q.Quaternion a) -> Quantity d (V3 a) -> Quantity d (V3 a)
+rotate (Dimensional q) = liftDLin $ Q.rotate q
+
+rotX :: Dimensionless Double -> Dimensionless (Q.Quaternion Double)
+rotX = fmap rotX'
+  where rotX' theta = Q.Quaternion (cos $ theta / 2) (V3 (sin $ theta / 2) 0 0)
+
+rotZ :: Dimensionless Double -> Dimensionless (Q.Quaternion Double)
+rotZ = fmap rotZ'
+  where rotZ' theta = Q.Quaternion (cos $ theta / 2) (V3 0 0 (sin $ theta / 2))
+

@@ -4,3 +4,4 @@ cabal.sandbox.config
 .dist-buildwrapper/
 dist/
 .settings/
+.HTF/
