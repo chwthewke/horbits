@@ -50,7 +50,7 @@ randomOrbit body (loH, hiH) (loE, hiE) = do
         e0 <- sphericalV3 (_0, _1)
         eN <- chooseQuantity (loE, hiE) `suchThat` (< _1)
         let e = e0 `mkOrth` h `withNorm` eN
-        return $ Orbit body h e _0
+        return $ Orbit body h e (MeanAnomalyAtEpoch _0)
 
 stdRandomOrbit :: Body -> Gen Orbit
 stdRandomOrbit body = randomOrbit body (loH, hiH) (_0, _1)

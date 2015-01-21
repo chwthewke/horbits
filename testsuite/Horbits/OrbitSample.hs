@@ -44,7 +44,7 @@ orbitSample desc'
 
 sampleOrbits :: [OrbitSample]
 sampleOrbits = [orbitSample "Circular equatorial 100km"
-                            (Orbit kerbin (v3 _0 _0 (sqrt hSq0)) (v3 _0 _0 _0) _0)
+                            (Orbit kerbin (v3 _0 _0 (sqrt hSq0)) (v3 _0 _0 _0) (MeanAnomalyAtEpoch _0))
                             (SemiMajorAxis $ 700000 *~ meter)
                             (Eccentricity _0)
                             (RightAscensionOfAscendingNode _0)
@@ -54,7 +54,7 @@ sampleOrbits = [orbitSample "Circular equatorial 100km"
                             (Periapsis $ 100000 *~ meter),
 
                 orbitSample "Circular equatorial retrograde 100km"
-                            (Orbit kerbin (v3 _0 _0 (negate $ sqrt hSq0)) (v3 _0 _0 _0) _0)
+                            (Orbit kerbin (v3 _0 _0 (negate $ sqrt hSq0)) (v3 _0 _0 _0) (MeanAnomalyAtEpoch _0))
                             (SemiMajorAxis $ 700000 *~ meter)
                             (Eccentricity _0)
                             (RightAscensionOfAscendingNode _0)
@@ -64,7 +64,8 @@ sampleOrbits = [orbitSample "Circular equatorial 100km"
                             (Periapsis $ 100000 *~ meter),
 
                 orbitSample "Elliptical (e = 0.2) equatorial with arg.pe = 0"
-                            (Orbit kerbin (v3 _0 _0 (sqrt $ 0.96 *. hSq0)) (v3 (0.2 *~ one) _0 _0) _0)
+                            (Orbit kerbin (v3 _0 _0 (sqrt $ 0.96 *. hSq0)) (v3 (0.2 *~ one) _0 _0) 
+                              (MeanAnomalyAtEpoch _0))
                             (SemiMajorAxis $ 700000 *~ meter)
                             (Eccentricity $ 0.2 *~ one)
                             (RightAscensionOfAscendingNode _0)
@@ -74,7 +75,8 @@ sampleOrbits = [orbitSample "Circular equatorial 100km"
                             (Periapsis $ (-40000) *~ meter),
 
                 orbitSample "Circular 45� incl, raan = 0�"
-                            (Orbit kerbin (v3 _0 (negate . sqrt $ 0.5 *. hSq0) (sqrt $ 0.5 *. hSq0)) (v3 _0 _0 _0) _0)
+                            (Orbit kerbin (v3 _0 (negate . sqrt $ 0.5 *. hSq0) (sqrt $ 0.5 *. hSq0)) (v3 _0 _0 _0) 
+                              (MeanAnomalyAtEpoch _0))
                             (SemiMajorAxis $ 700000 *~ meter)
                             (Eccentricity _0)
                             (RightAscensionOfAscendingNode _0)
@@ -85,7 +87,7 @@ sampleOrbits = [orbitSample "Circular equatorial 100km"
 
                 orbitSample "Circular 45� incl, raan = 45�"
                             (Orbit kerbin (v3 (sqrt $ 0.25 *. hSq0) (negate . sqrt $ 0.25 *. hSq0) (sqrt $ 0.5 *. hSq0))
-                              (v3 _0 _0 _0) _0)
+                              (v3 _0 _0 _0) (MeanAnomalyAtEpoch _0))
                             (SemiMajorAxis $ 700000 *~ meter)
                             (Eccentricity _0)
                             (RightAscensionOfAscendingNode $ 0.25 *. pi)
@@ -96,7 +98,7 @@ sampleOrbits = [orbitSample "Circular equatorial 100km"
 
                 orbitSample "Elliptical (e = 0.2) 45� incl, raan = arg. pe = 0"
                             (Orbit kerbin (v3 _0 (negate . sqrt $ 0.48 *. hSq0) (sqrt $ 0.48 *. hSq0))
-                              (v3 (0.2 *~ one) _0 _0) _0)
+                              (v3 (0.2 *~ one) _0 _0) (MeanAnomalyAtEpoch _0))
                             (SemiMajorAxis $ 700000 *~ meter)
                             (Eccentricity $ 0.2 *~ one)
                             (RightAscensionOfAscendingNode _0)
@@ -107,7 +109,7 @@ sampleOrbits = [orbitSample "Circular equatorial 100km"
 
                 orbitSample "Elliptical (e = 0.2) 45� incl, raan = 0�, arg. pe = 90�"
                             (Orbit kerbin (v3 _0 (negate . sqrt $ 0.48 *. hSq0) (sqrt $ 0.48 *. hSq0))
-                              (v3 _0 (0.2 *. sqrt (0.5 *~ one)) (0.2 *. sqrt (0.5 *~ one))) _0)
+                              (v3 _0 (0.2 *. sqrt (0.5 *~ one)) (0.2 *. sqrt (0.5 *~ one))) (MeanAnomalyAtEpoch _0))
                             (SemiMajorAxis $ 700000 *~ meter)
                             (Eccentricity $ 0.2 *~ one)
                             (RightAscensionOfAscendingNode _0)
@@ -118,7 +120,7 @@ sampleOrbits = [orbitSample "Circular equatorial 100km"
 
                 orbitSample "Elliptical (e = 0.2) 45� incl, raan = 45�, arg.pe = 0�"
                             (Orbit kerbin (v3 (sqrt $ 0.24 *. hSq0) (negate . sqrt $ 0.24 *. hSq0) (sqrt $ 0.48 *. hSq0))
-                              (v3 (0.2 *. sqrt (0.5 *~ one)) (0.2 *. sqrt (0.5 *~ one)) _0) _0)
+                              (v3 (0.2 *. sqrt (0.5 *~ one)) (0.2 *. sqrt (0.5 *~ one)) _0) (MeanAnomalyAtEpoch _0))
                             (SemiMajorAxis $ 700000 *~ meter)
                             (Eccentricity $ 0.2 *~ one)
                             (RightAscensionOfAscendingNode $ 0.25 *. pi)

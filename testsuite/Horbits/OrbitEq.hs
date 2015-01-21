@@ -13,7 +13,11 @@ module Horbits.OrbitEq
   where
 
 import           Control.Applicative
+import           Control.Lens                         ((^.))
 import           Control.Rematch
+import           Horbits.DimLin
+import           Horbits.Orbit
+import           Linear.Metric                        (Metric)
 import           Numeric.Units.Dimensional.TF.Prelude hiding (mod)
 import           Prelude                              hiding (abs, mod, pi, (*),
                                                        (+), (-))
@@ -46,7 +50,12 @@ instance AbsoluteApproximateEq (Quantity d Double) (Quantity d Double) where
 instance (d ~ Mul DOne d) => RelativeApproximateEq (Quantity d Double) (Dimensionless Double) where
   (=~~) actual expected tolerance = abs (expected - actual) <= tolerance * abs expected
 
+instance (d ~ Mul DOne d, Metric f) => RelativeApproximateEq (Quantity d (f Double)) (Dimensionless Double) where
+  (=~~) actual expected tolerance = norm (actual ^-^ expected) <= tolerance * norm expected
 
+instance RelativeApproximateEq Orbit (Dimensionless Double) where
+  (=~~) actual expected = (actual ^. eccentricityVector) =~~ (expected ^. eccentricityVector) &&&
+                          (actual ^. angularMomentum) =~~ (expected ^. angularMomentum)
 
 approxMatch :: (Show a, Show t) =>
                  (a -> a -> t -> Bool) -> a -> t -> Matcher a
