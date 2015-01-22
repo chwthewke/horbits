@@ -1,10 +1,7 @@
-{-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RecordWildCards       #-}
 {-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE TypeSynonymInstances  #-}
-{-# LANGUAGE UndecidableInstances  #-}
 
 module Horbits.OrbitEq
                        ((&&&),
@@ -21,10 +18,10 @@ import           Horbits.DimLin
 import           Horbits.Orbit
 import           Horbits.OrbitSample
 import           Horbits.Rematch
-import           Numeric.Units.Dimensional.Prelude hiding (mod)
-import           Prelude                           hiding (abs, mod, pi, (*),
-                                                    (+), (-))
-import           Test.QuickCheck                   hiding (sample)
+import           Numeric.Units.Dimensional.TF.Prelude hiding (mod)
+import           Prelude                              hiding (abs, mod, pi, (*),
+                                                       (+), (-))
+import           Test.QuickCheck                      hiding (sample)
 
 -- TODO TypeFamilies might help with the ascriptions in isEquatorial, isCircular, but wait until we have all instances
 
@@ -50,7 +47,7 @@ class RelativeApproximateEq a b where
 instance AbsoluteApproximateEq (Quantity d Double) (Quantity d Double) where
   (=~) actual expected tolerance = abs (expected - actual) <= abs tolerance
 
-instance (Mul DOne d d) => RelativeApproximateEq (Quantity d Double) (Dimensionless Double) where
+instance (d ~ Mul DOne d) => RelativeApproximateEq (Quantity d Double) (Dimensionless Double) where
   (=~~) actual expected tolerance = abs (expected - actual) <= tolerance * abs expected
 
 isEquatorial :: OrbitSample -> Dimensionless Double -> Bool

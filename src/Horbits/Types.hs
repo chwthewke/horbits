@@ -1,6 +1,6 @@
 module Horbits.Types where
 
-import           Numeric.Units.Dimensional
+import           Numeric.Units.Dimensional.TF
 
 newtype SemiMajorAxis = SemiMajorAxis (Length Double)
 newtype Eccentricity = Eccentricity (Dimensionless Double)

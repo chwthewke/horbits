@@ -10,9 +10,9 @@ executable horbits
   build-depends:   
                    base >= 4,
                    lens >= 4.6.0.1 && < 4.7,
-                   dimensional >= 0.13.0.1 && < 0.14,
+                   dimensional-tf >= 0.3.0.1 && < 0.4,
                    linear >= 1.15.4 && < 1.16,
-                   numtype >= 1.1 && < 1.2
+                   numtype-tf >= 0.1.2 && < 0.2
   ghc-options:     -Wall
   other-modules:   
                    Horbits.DimLin,
@@ -27,6 +27,7 @@ test-suite HorbitsTests
   build-depends:   base >= 4, 
                    HTF >= 0.12.2.3 && < 0.13,
                    QuickCheck >= 2.7.6 && < 2.8,
+                   random >= 1.1 && < 1.2,
                    rematch >= 0.2.0.0 && < 0.3 
   other-modules:   
                   Horbits.DimLin,
@@ -36,7 +37,8 @@ test-suite HorbitsTests
                   Horbits.Types,
                   Horbits.OrbitEq,
                   Horbits.OrbitSample,
-                  Horbits.Rematch
+                  Horbits.Rematch,
+                  Horbits.OrbitGen
   hs-source-dirs:  
                   src,
                   testsuite

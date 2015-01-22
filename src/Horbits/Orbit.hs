@@ -3,20 +3,20 @@
 
 module Horbits.Orbit where
 
-import           Control.Lens                         hiding ((*~), _1, _2)
+import           Control.Lens                            hiding ((*~), _1, _2)
 import           Horbits.DimLin
 import           Horbits.Quantities
-import           Numeric.NumType                      (pos2, pos3)
-import           Numeric.Units.Dimensional            (Dimensionless, Length,
-                                                       Time, negate, sqrt, tau,
-                                                       (*), (*~), (+), (-), (/),
-                                                       (^), _1, _2)
-import           Numeric.Units.Dimensional.Quantities (GravitationalParameter,
-                                                       SpecificEnergy)
-import           Numeric.Units.Dimensional.SIUnits
-import           Prelude                              hiding (atan2, negate,
-                                                       sqrt, (*), (+), (-), (/),
-                                                       (^))
+import           Numeric.NumType.TF                      (pos2, pos3)
+import           Numeric.Units.Dimensional.TF            (Dimensionless, Length,
+                                                          Time, negate, sqrt,
+                                                          tau, (*), (*~), (+),
+                                                          (-), (/), (^), _1, _2)
+import           Numeric.Units.Dimensional.TF.Quantities (GravitationalParameter,
+                                                          SpecificEnergy)
+import           Numeric.Units.Dimensional.TF.SIUnits
+import           Prelude                                 hiding (atan2, negate,
+                                                          sqrt, (*), (+), (-),
+                                                          (/), (^))
 
 data BodyId =
     Kerbol

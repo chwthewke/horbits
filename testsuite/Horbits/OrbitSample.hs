@@ -1,12 +1,12 @@
 module Horbits.OrbitSample where
 
-import           Control.Lens                      ((^.))
+import           Control.Lens                         ((^.))
 import           Horbits.DimLin
 import           Horbits.Orbit
 import           Horbits.Types
-import           Numeric.Units.Dimensional.Prelude
-import           Prelude                           hiding (negate, pi, sqrt,
-                                                    (*))
+import           Numeric.Units.Dimensional.TF.Prelude
+import           Prelude                              hiding (negate, pi, sqrt,
+                                                       (*))
 import           Test.QuickCheck
 
 data OrbitSample = OrbitSample { desc  :: String
@@ -72,7 +72,7 @@ sampleOrbits = [orbitSample "Circular equatorial 100km"
                             (Apoapsis $ 240000 *~ meter)
                             (Periapsis $ (-40000) *~ meter),
 
-                orbitSample "Circular 45° incl, raan = 0°"
+                orbitSample "Circular 45� incl, raan = 0�"
                             (Orbit kerbin (v3 _0 (negate . sqrt $ 0.5 *. hSq0) (sqrt $ 0.5 *. hSq0)) (v3 _0 _0 _0) _0)
                             (SemiMajorAxis $ 700000 *~ meter)
                             (Eccentricity _0)
@@ -82,7 +82,7 @@ sampleOrbits = [orbitSample "Circular equatorial 100km"
                             (Apoapsis $ 100000 *~ meter)
                             (Periapsis $ 100000 *~ meter),
 
-                orbitSample "Circular 45° incl, raan = 45°"
+                orbitSample "Circular 45� incl, raan = 45�"
                             (Orbit kerbin (v3 (sqrt $ 0.25 *. hSq0) (negate . sqrt $ 0.25 *. hSq0) (sqrt $ 0.5 *. hSq0))
                               (v3 _0 _0 _0) _0)
                             (SemiMajorAxis $ 700000 *~ meter)
@@ -92,8 +92,8 @@ sampleOrbits = [orbitSample "Circular equatorial 100km"
                             (ArgumentOfPeriapsis _0)
                             (Apoapsis $ 100000 *~ meter)
                             (Periapsis $ 100000 *~ meter),
-                            
-                orbitSample "Elliptical (e = 0.2) 45° incl, raan = arg. pe = 0"
+
+                orbitSample "Elliptical (e = 0.2) 45� incl, raan = arg. pe = 0"
                             (Orbit kerbin (v3 _0 (negate . sqrt $ 0.48 *. hSq0) (sqrt $ 0.48 *. hSq0))
                               (v3 (0.2 *~ one) _0 _0) _0)
                             (SemiMajorAxis $ 700000 *~ meter)
@@ -103,8 +103,8 @@ sampleOrbits = [orbitSample "Circular equatorial 100km"
                             (ArgumentOfPeriapsis _0)
                             (Apoapsis $ 240000 *~ meter)
                             (Periapsis $ (-40000) *~ meter),
-                            
-                orbitSample "Elliptical (e = 0.2) 45° incl, raan = 0°, arg. pe = 90°"
+
+                orbitSample "Elliptical (e = 0.2) 45� incl, raan = 0�, arg. pe = 90�"
                             (Orbit kerbin (v3 _0 (negate . sqrt $ 0.48 *. hSq0) (sqrt $ 0.48 *. hSq0))
                               (v3 _0 (0.2 *. sqrt (0.5 *~ one)) (0.2 *. sqrt (0.5 *~ one))) _0)
                             (SemiMajorAxis $ 700000 *~ meter)
@@ -114,8 +114,8 @@ sampleOrbits = [orbitSample "Circular equatorial 100km"
                             (ArgumentOfPeriapsis $ 0.5 *. pi)
                             (Apoapsis $ 240000 *~ meter)
                             (Periapsis $ (-40000) *~ meter),
-                            
-                orbitSample "Elliptical (e = 0.2) 45° incl, raan = 45°, arg.pe = 0°"
+
+                orbitSample "Elliptical (e = 0.2) 45� incl, raan = 45�, arg.pe = 0�"
                             (Orbit kerbin (v3 (sqrt $ 0.24 *. hSq0) (negate . sqrt $ 0.24 *. hSq0) (sqrt $ 0.48 *. hSq0))
                               (v3 (0.2 *. sqrt (0.5 *~ one)) (0.2 *. sqrt (0.5 *~ one)) _0) _0)
                             (SemiMajorAxis $ 700000 *~ meter)

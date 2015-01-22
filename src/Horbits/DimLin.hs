@@ -1,37 +1,34 @@
-{-# LANGUAGE AllowAmbiguousTypes   #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeFamilies #-}
 
 
 module Horbits.DimLin(Horbits.DimLin.atan2, _x, _y, _z, _xy, _yx, zero, (^+^), (^-^), (^*), (*^), (^/), (*.),
   dot, quadrance, qd, distance, Horbits.DimLin.mod, norm, signorm, normalize, project, rotate, rotX, rotZ, v2, v3,
   V1, V2, V3) where
 
-import           Control.Lens              hiding ((*~))
-import qualified Data.Fixed                as DF
-import           Linear                    (Epsilon)
-import           Linear.Conjugate          (Conjugate)
-import qualified Linear.Metric             as N
-import qualified Linear.Quaternion         as Q
-import           Linear.V1                 (R1, V1)
-import qualified Linear.V1                 as V1 (_x)
-import           Linear.V2                 (R2, V2 (..))
-import qualified Linear.V2                 as V2 (_xy, _y, _yx)
-import           Linear.V3                 (R3, V3 (..))
-import qualified Linear.V3                 as V3 (_z)
-import qualified Linear.Vector             as V
-import           Numeric.NumType           (Pos2, pos2)
-import           Numeric.Units.Dimensional (DOne, Dimensional (..),
-                                            Dimensionless, Div, Mul, Pow,
-                                            Quantity, one, (*), (*~))
-import           Prelude                   hiding ((*))
+import           Control.Lens                 hiding ((*~))
+import qualified Data.Fixed                   as DF
+import           Linear                       (Epsilon)
+import           Linear.Conjugate             (Conjugate)
+import qualified Linear.Metric                as N
+import qualified Linear.Quaternion            as Q
+import           Linear.V1                    (R1, V1)
+import qualified Linear.V1                    as V1 (_x)
+import           Linear.V2                    (R2, V2 (..))
+import qualified Linear.V2                    as V2 (_xy, _y, _yx)
+import           Linear.V3                    (R3, V3 (..))
+import qualified Linear.V3                    as V3 (_z)
+import qualified Linear.Vector                as V
+import           Numeric.NumType.TF           (Pos2, pos2)
+import           Numeric.Units.Dimensional.TF (DOne, Dimensional (..),
+                                               Dimensionless, Div, Mul, Pow,
+                                               Quantity, one, (*), (*~))
+import           Prelude                      hiding ((*))
 
 infixl 6 ^+^, ^-^
 infixl 7 ^*, *^, ^/
 infixl 7 *.
 
-(*.) :: (Mul DOne d d, Num a) => a -> Quantity d a -> Quantity d a
+(*.) :: (Num a, d ~ Mul DOne d) => a -> Quantity d a -> Quantity d a
 a *. q = (a *~ one) * q
 
 -- Lifts
@@ -67,7 +64,7 @@ liftD f (Dimensional a) = Dimensional $ f a
 liftDLin :: DF1 v d d a b
 liftDLin = liftD
 
-liftDPow :: (Pow d n d') => n -> DF1 v d d' a b
+liftDPow :: n -> DF1 v d (Pow d n) a b
 liftDPow _ = liftD
 
 type DF2 v d d' d'' a b c = (a -> b -> c) -> Dimensional v d a -> Dimensional v d' b -> Dimensional v d'' c
@@ -79,10 +76,10 @@ liftD2 f (Dimensional a) (Dimensional b) = Dimensional $ f a b
 liftDA2 :: DF2 v d d d a b c
 liftDA2 = liftD2
 
-liftDM2 :: (Mul d d' d'') => DF2 v d d' d'' a b c
+liftDM2 :: DF2 v d d' (Mul d d') a b c
 liftDM2 = liftD2
 
-liftDD2 :: (Div d d' d'') => DF2 v d d' d'' a b c
+liftDD2 :: DF2 v d d' (Div d d') a b c
 liftDD2 = liftD2
 
 -- Real modulo
@@ -109,13 +106,13 @@ zero = Dimensional V.zero
 (^-^) :: (V.Additive f, Num a) => Quantity d (f a) -> Quantity d (f a) -> Quantity d (f a)
 (^-^) = liftDA2 (V.^-^)
 
-(^*) :: (Num a, Functor f, Mul d d' d'') => Quantity d (f a) -> Quantity d' a -> Quantity d'' (f a)
+(^*) :: (Num a, Functor f) => Quantity d (f a) -> Quantity d' a -> Quantity (Mul d d') (f a)
 (^*) = liftDM2 (V.^*)
 
-(*^) :: (Num a, Functor f, Mul d d' d'') => Quantity d a -> Quantity d' (f a) -> Quantity d'' (f a)
+(*^) :: (Num a, Functor f) => Quantity d a -> Quantity d' (f a) -> Quantity (Mul d d') (f a)
 (*^) = liftDM2 (V.*^)
 
-(^/) :: (Fractional a, Functor f, Div d d' d'') => Quantity d (f a) -> Quantity d' a -> Quantity d'' (f a)
+(^/) :: (Fractional a, Functor f) => Quantity d (f a) -> Quantity d' a -> Quantity (Div d d') (f a)
 (^/) = liftDD2 (V.^/)
 
 v2 :: Quantity d a -> Quantity d a -> Quantity d (V2 a)
@@ -126,13 +123,13 @@ v3 (Dimensional x) (Dimensional y) (Dimensional z) = Dimensional $ V3 x y z
 
 -- Metric
 
-dot :: (N.Metric f, Num a, Mul d d' d'') => Quantity d (f a) -> Quantity d' (f a) -> Quantity d'' a
+dot :: (N.Metric f, Num a) => Quantity d (f a) -> Quantity d' (f a) -> Quantity (Mul d d') a
 dot = liftDM2 N.dot
 
-quadrance :: (N.Metric f, Num a, Pow d Pos2 d') => Quantity d (f a) -> Quantity d' a
+quadrance :: (N.Metric f, Num a) => Quantity d (f a) -> Quantity (Pow d Pos2) a
 quadrance = liftDPow pos2 N.quadrance
 
-qd :: (N.Metric f, Num a, Pow d Pos2 d') => Quantity d (f a) -> Quantity d (f a) -> Quantity d' a
+qd :: (N.Metric f, Num a) => Quantity d (f a) -> Quantity d (f a) -> Quantity (Pow d Pos2) a
 qd = liftD2 N.qd
 
 distance :: (N.Metric f, Floating a) => Quantity d (f a) -> Quantity d (f a) -> Quantity d a
