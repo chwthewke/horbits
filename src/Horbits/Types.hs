@@ -1,6 +1,10 @@
 module Horbits.Types where
 
+import           Numeric.NumType.TF
 import           Numeric.Units.Dimensional.TF
+
+type DSpecificAngularMomentum = Dim Pos2 Zero Neg1 Zero Zero Zero Zero
+type SpecificAngularMomentum = Quantity DSpecificAngularMomentum
 
 newtype SemiMajorAxis = SemiMajorAxis (Length Double)
 newtype Eccentricity = Eccentricity (Dimensionless Double)

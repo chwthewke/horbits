@@ -1,6 +1,7 @@
 module Horbits.OrbitSample where
 
 import           Control.Lens                         ((^.))
+import           Horbits.Body
 import           Horbits.DimLin
 import           Horbits.Orbit
 import           Horbits.Types

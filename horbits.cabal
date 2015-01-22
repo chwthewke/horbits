@@ -17,8 +17,8 @@ executable horbits
   other-modules:   
                    Horbits.DimLin,
                    Horbits.Orbit,
-                   Horbits.Quantities,
-                   Horbits.Types
+                   Horbits.Types,
+                   Horbits.Body
 
 test-suite HorbitsTests
   type:            exitcode-stdio-1.0
@@ -32,13 +32,13 @@ test-suite HorbitsTests
   other-modules:   
                   Horbits.DimLin,
                   Horbits.Orbit,
-                  Horbits.OrbitTest,
-                  Horbits.Quantities,
                   Horbits.Types,
                   Horbits.OrbitEq,
                   Horbits.OrbitSample,
                   Horbits.Rematch,
-                  Horbits.OrbitGen
+                  Horbits.OrbitGen,
+                  Horbits.Body,
+                  Horbits.OrbitClassicalTest
   hs-source-dirs:  
                   src,
                   testsuite

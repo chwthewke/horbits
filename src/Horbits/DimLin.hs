@@ -1,7 +1,7 @@
 {-# LANGUAGE TypeFamilies #-}
 
 
-module Horbits.DimLin(Horbits.DimLin.atan2, _x, _y, _z, _xy, _yx, zero, (^+^), (^-^), (^*), (*^), (^/), (*.),
+module Horbits.DimLin(Horbits.DimLin.atan2, _x, _y, _z, _xy, _yx, zero, (^+^), (^-^), (^*), (*^), (^/), (*.), cross,
   dot, quadrance, qd, distance, Horbits.DimLin.mod, norm, signorm, normalize, project, rotate, rotX, rotZ, v2, v3,
   V1, V2, V3) where
 
@@ -16,7 +16,7 @@ import qualified Linear.V1                    as V1 (_x)
 import           Linear.V2                    (R2, V2 (..))
 import qualified Linear.V2                    as V2 (_xy, _y, _yx)
 import           Linear.V3                    (R3, V3 (..))
-import qualified Linear.V3                    as V3 (_z)
+import qualified Linear.V3                    as V3 (cross, _z)
 import qualified Linear.Vector                as V
 import           Numeric.NumType.TF           (Pos2, pos2)
 import           Numeric.Units.Dimensional.TF (DOne, Dimensional (..),
@@ -120,6 +120,9 @@ v2 (Dimensional x) (Dimensional y) = Dimensional $ V2 x y
 
 v3 :: Quantity d a -> Quantity d a -> Quantity d a -> Quantity d (V3 a)
 v3 (Dimensional x) (Dimensional y) (Dimensional z) = Dimensional $ V3 x y z
+
+cross :: (Num a) => Quantity d (V3 a) -> Quantity d' (V3 a) -> Quantity (Mul d d') (V3 a)
+cross = liftDM2 V3.cross
 
 -- Metric
 

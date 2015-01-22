@@ -4,53 +4,21 @@
 module Horbits.Orbit where
 
 import           Control.Lens                            hiding ((*~), _1, _2)
+import           Horbits.Body
 import           Horbits.DimLin
-import           Horbits.Quantities
+import           Horbits.Types
 import           Numeric.NumType.TF                      (pos2, pos3)
 import           Numeric.Units.Dimensional.TF            (Dimensionless, Length,
                                                           Time, negate, sqrt,
-                                                          tau, (*), (*~), (+),
-                                                          (-), (/), (^), _1, _2)
-import           Numeric.Units.Dimensional.TF.Quantities (GravitationalParameter,
-                                                          SpecificEnergy)
-import           Numeric.Units.Dimensional.TF.SIUnits
+                                                          tau, (*), (+), (-),
+                                                          (/), (^), _1, _2)
+import           Numeric.Units.Dimensional.TF.Quantities (SpecificEnergy)
 import           Prelude                                 hiding (atan2, negate,
                                                           sqrt, (*), (+), (-),
                                                           (/), (^))
 
-data BodyId =
-    Kerbol
-  | Kerbin
-  | Mun
-  | Minmus
-  | Moho
-  | Eve
-  | Duna
-  | Ike
-  | Jool
-  | Laythe
-  | Vall
-  | Bop
-  | Tylo
-  | Gilly
-  | Pol
-  | Dres
-  | Eeloo
-  deriving (Enum, Show, Eq)
 
-getBody :: BodyId -> Body
-getBody Kerbin = mkBody 3.5316e12 600000
-getBody _ = undefined
-
-mkBody :: Double -> Double -> Body
-mkBody mu r = Body (mu *~ (meter ^ pos3 / second ^ pos2)) (r *~ meter)
-
-data Body = Body { _gravitationalParam :: GravitationalParameter Double
-                 , _bodyRadius         :: Length Double
-                 } deriving (Show, Eq)
-makeLenses ''Body
-
-data Orbit = Orbit { _body               :: Body
+data Orbit = Orbit { _orbitBody          :: Body
                    , _angularMomentum    :: SpecificAngularMomentum (V3 Double)
                    , _eccentricityVector :: Dimensionless (V3 Double)
                    , _meanAnomalyAtEpoch :: Dimensionless Double
@@ -58,7 +26,7 @@ data Orbit = Orbit { _body               :: Body
 makeLenses ''Orbit
 
 sma0 :: Orbit -> Length Double
-sma0 orbit = quadrance (orbit ^. angularMomentum) / (orbit ^. body . gravitationalParam)
+sma0 orbit = quadrance (orbit ^. angularMomentum) / (orbit ^. orbitBody . gravitationalParam)
 
 _eccentricity :: Orbit -> Dimensionless Double
 _eccentricity orbit = norm $ orbit ^. eccentricityVector
@@ -67,10 +35,10 @@ _semiMajorAxis :: Orbit -> Length Double
 _semiMajorAxis orbit = sma0 orbit / (_1 - (_eccentricity orbit ^ pos2))
 
 _apoapsis :: Orbit -> Length Double
-_apoapsis orbit = sma0 orbit / (_1 - _eccentricity orbit) - orbit ^. body . bodyRadius
+_apoapsis orbit = sma0 orbit / (_1 - _eccentricity orbit) - orbit ^. orbitBody . bodyRadius
 
 _periapsis :: Orbit -> Length Double
-_periapsis orbit = sma0 orbit / (_1 + _eccentricity orbit) - orbit ^. body . bodyRadius
+_periapsis orbit = sma0 orbit / (_1 + _eccentricity orbit) - orbit ^. orbitBody . bodyRadius
 
 _rightAscensionOfAscendingNode  :: Orbit -> Dimensionless Double
 _rightAscensionOfAscendingNode orbit = atan2 (orbit ^. angularMomentum . _x) (negate $ orbit ^. angularMomentum . _y)
@@ -86,8 +54,8 @@ _argumentOfPeriapsis orbit = atan2 y x
         e = orbit ^. eccentricityVector
 
 _orbitalPeriod :: Orbit -> Time Double
-_orbitalPeriod orbit = tau * sqrt (_semiMajorAxis orbit ^ pos3 / orbit ^. body . gravitationalParam)
+_orbitalPeriod orbit = tau * sqrt (_semiMajorAxis orbit ^ pos3 / orbit ^. orbitBody . gravitationalParam)
 
 _specificEnergy :: Orbit -> SpecificEnergy Double
-_specificEnergy orbit = negate $ orbit ^. body . gravitationalParam / (_2 * _semiMajorAxis orbit)
+_specificEnergy orbit = negate $ orbit ^. orbitBody . gravitationalParam / (_2 * _semiMajorAxis orbit)
 
