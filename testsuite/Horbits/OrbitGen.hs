@@ -11,8 +11,7 @@ import           Horbits.Orbit
 import           Horbits.Types
 import           Linear.Metric                (Metric)
 import           Numeric.Units.Dimensional.TF hiding ((^/))
-import           Prelude                      hiding (cos, pi, sin, sqrt, (*),
-                                               (+), (-), (/))
+import           Prelude                      hiding (cos, pi, sin, sqrt, (*), (+), (-), (/))
 import           System.Random
 import           Test.Framework
 
@@ -41,7 +40,7 @@ sphericalV3 (lo, hi) = do
   long <- chooseQuantity (_0, _2 * pi)
   return $ v3 (sin colat * cos long * n) (sin colat * sin long * n) (cos colat * n)
 
-randomOrbit :: Body ->
+randomOrbit :: BodyId ->
                  (Quantity DSpecificAngularMomentum Double, Quantity DSpecificAngularMomentum Double) ->
                  (Dimensionless Double, Dimensionless Double) ->
                  Gen Orbit
@@ -52,11 +51,11 @@ randomOrbit body (loH, hiH) (loE, hiE) = do
         let e = e0 `mkOrth` h `withNorm` eN
         return $ Orbit body h e (MeanAnomalyAtEpoch _0)
 
-stdRandomOrbit :: Body -> Gen Orbit
+stdRandomOrbit :: BodyId -> Gen Orbit
 stdRandomOrbit body = randomOrbit body (loH, hiH) (_0, _1)
-  where loH = sqrt (body ^. gravitationalParam * minAlt)
-        hiH = sqrt (_2 * body ^. gravitationalParam * minAlt)
-        minAlt = body  ^. bodyRadius + fromMaybe _0 (body ^. bodyAtmosphereHeight)
+  where loH = sqrt (body ^. fromBodyId . bodyGravitationalParam * minAlt)
+        hiH = sqrt (_2 * body ^. fromBodyId . bodyGravitationalParam * minAlt)
+        minAlt = body  ^. fromBodyId . bodyRadius + fromMaybe _0 (body ^. fromBodyId . bodyAtmosphereHeight)
 
 orbitHasOrthogonalHAndE :: Orbit -> Bool
 orbitHasOrthogonalHAndE orbit = e `dot` h < 1e-12 *. (norm e * norm h)
@@ -65,11 +64,11 @@ orbitHasOrthogonalHAndE orbit = e `dot` h < 1e-12 *. (norm e * norm h)
 
 prop_generatedOrbitsHaveOrthogonalHAndE :: Property
 prop_generatedOrbitsHaveOrthogonalHAndE =
-  forAll (stdRandomOrbit (getBody Kerbin)) orbitHasOrthogonalHAndE
+  forAll (stdRandomOrbit Kerbin) orbitHasOrthogonalHAndE
 
 orbitIsElliptical :: Orbit -> Bool
 orbitIsElliptical orbit = norm (orbit ^. eccentricityVector) < _1
 
 prop_generatedOrbitsAreElliptical :: Property
 prop_generatedOrbitsAreElliptical =
-  forAll (stdRandomOrbit (getBody Kerbin)) orbitIsElliptical
+  forAll (stdRandomOrbit Kerbin) orbitIsElliptical

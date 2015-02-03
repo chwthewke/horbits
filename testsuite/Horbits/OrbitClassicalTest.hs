@@ -15,13 +15,11 @@ import           Horbits.OrbitSample
 import           Horbits.Rematch
 import           Horbits.Types
 import           Numeric.Units.Dimensional.TF.Prelude hiding (mod)
-import           Prelude                              hiding (cos, mod, negate,
-                                                       pi, sin, sqrt, (*), (+),
-                                                       (-), (/))
+import           Prelude                              hiding (cos, mod, negate, pi, sin, sqrt, (*), (+), (-), (/))
 import           Test.Framework                       hiding (sample)
 
 genOrbits :: Gen Orbit
-genOrbits = stdRandomOrbit $ getBody Kerbin
+genOrbits = stdRandomOrbit Kerbin
 
 
 runApprox :: (a -> Dimensionless Double -> Bool) -> a -> Bool
@@ -76,7 +74,7 @@ checkAngularMomentumAtApside apside orbit =
   (height * sqrt (mu * (_2 / height - _1 / sma)) =~~ norm (orbit ^. angularMomentum)) . adaptToleranceFor orbit
   where height = (orbit ^. orbitBody . bodyRadius) + apside orbit
         sma = _semiMajorAxis orbit ^. measure
-        mu = orbit ^. orbitBody ^. gravitationalParam
+        mu = orbit ^. orbitBody ^. bodyGravitationalParam
 
 
 prop_AngularMomentumAtPe :: Property
@@ -122,7 +120,7 @@ prop_HxyRaan = forAll genOrbits $ runApprox checkHxyRaan
 
 checkEzInclArgPe :: Orbit -> Dimensionless Double -> Bool
 checkEzInclArgPe orbit =
-  _eccentricityVector orbit ^. _z =~~
+  orbit ^. eccentricityVector . _z =~~
     sin (_inclination orbit ^. measure) *
     sin (_argumentOfPeriapsis orbit ^. measure) *
     _eccentricity orbit ^. measure
@@ -132,13 +130,13 @@ prop_EzInclArgPe = forAll genOrbits $ runApprox checkEzInclArgPe
 
 checkOrbitFromClassicalElements :: Orbit -> Dimensionless Double -> Bool
 checkOrbitFromClassicalElements orbit = orbit =~~ cOrbit
-  where cOrbit = classical (orbit ^. orbitBody)
+  where cOrbit = classical (orbit ^. orbitBodyId)
                            (_semiMajorAxis orbit)
                            (_eccentricity orbit)
                            (_rightAscensionOfAscendingNode orbit)
                            (_inclination orbit)
                            (_argumentOfPeriapsis orbit)
-                           (_meanAnomalyAtEpoch orbit)
+                           (orbit ^. meanAnomalyAtEpoch )
 
 prop_orbitFromClassicalElements :: Property
 prop_orbitFromClassicalElements = forAll genOrbits $ runApprox checkOrbitFromClassicalElements
