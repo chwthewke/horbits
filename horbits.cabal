@@ -20,6 +20,16 @@ executable horbits
                    Horbits.Types,
                    Horbits.Body
 
+library
+  build-depends:   base >= 4
+  hs-source-dirs:  src
+  ghc-options:     -Wall
+  exposed-modules: 
+                   Horbits.Body,
+                   Horbits.DimLin,
+                   Horbits.Orbit,
+                   Horbits.Types
+
 test-suite HorbitsTests
   type:            exitcode-stdio-1.0
   main-is:         HorbitsTests.hs
@@ -44,13 +54,4 @@ test-suite HorbitsTests
                   src,
                   testsuite
 
-library 
-  build-depends:   base >= 4
-  hs-source-dirs:  src
-  ghc-options:     -Wall
-  exposed-modules: 
-                   Horbits.Body,
-                   Horbits.DimLin,
-                   Horbits.Orbit,
-                   Horbits.Types
 

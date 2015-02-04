@@ -19,7 +19,7 @@ import           Prelude                              hiding (cos, mod, negate, 
 import           Test.Framework                       hiding (sample)
 
 genOrbits :: Gen Orbit
-genOrbits = stdRandomOrbit Kerbin
+genOrbits = anyBody >>= capturedOrbit
 
 
 runApprox :: (a -> Dimensionless Double -> Bool) -> a -> Bool
@@ -36,19 +36,19 @@ matchRaan :: OrbitSample -> Dimensionless Double -> (String, Matcher Orbit)
 matchRaan sample@OrbitSample{..} = do
   eq <- isEquatorial sample
   let expectedRaan = if eq then _0 else raan
-  has ("RAAN", view measure . _rightAscensionOfAscendingNode) <$> closeTo expectedRaan
+  has ("RAAN", rightAscensionOfAscendingNode . measure) <$> closeTo expectedRaan
 
 matchArgPe :: OrbitSample -> Dimensionless Double -> (String, Matcher Orbit)
 matchArgPe sample@OrbitSample{..} = do
   circ <- isCircular sample
   let expectedArgPe = if circ then _0 else arg
-  has ("ARGPE", view measure . _argumentOfPeriapsis) <$> closeTo expectedArgPe
+  has ("ARGPE", argumentOfPeriapsis . measure) <$> closeTo expectedArgPe
 
 matchClassicalElements :: OrbitSample -> Dimensionless Double -> Matcher Orbit
 matchClassicalElements sample@OrbitSample{..} = allOf' <$> sequence
-    [has ("SMA", view measure . _semiMajorAxis) <$> relativelyCloseTo sma,
-     has ("ECC", view measure . _eccentricity) <$> closeTo e,
-     has ("INC", view measure . _inclination) <$> closeTo incl,
+    [has ("SMA", semiMajorAxis . measure) <$> relativelyCloseTo sma,
+     has ("ECC", eccentricity . measure) <$> closeTo e,
+     has ("INC", inclination . measure) <$> closeTo incl,
      matchRaan sample,
      matchArgPe sample
     ]
@@ -67,63 +67,66 @@ prop_sampleOrbitsShouldHaveExpectedClassicalElements =
   forAll genSampleOrbits $ sampleClassicalElementsApproximatelyEqualExpected 1e-12
 
 adaptToleranceFor :: Orbit -> Dimensionless Double -> Dimensionless Double
-adaptToleranceFor orbit = (/ (_1 - _eccentricity orbit ^. measure))
+adaptToleranceFor orbit = (/ (_1 - orbit ^. eccentricity . measure))
 
-checkAngularMomentumAtApside :: (Orbit -> Length Double) -> Orbit -> Dimensionless Double -> Bool
+checkAngularMomentumAtApside :: Getting (Length Double) Orbit (Length Double) -> Orbit -> Dimensionless Double -> Bool
 checkAngularMomentumAtApside apside orbit =
-  (height * sqrt (mu * (_2 / height - _1 / sma)) =~~ norm (orbit ^. angularMomentum)) . adaptToleranceFor orbit
-  where height = (orbit ^. orbitBody . bodyRadius) + apside orbit
-        sma = _semiMajorAxis orbit ^. measure
-        mu = orbit ^. orbitBody ^. bodyGravitationalParam
+  (height * sqrt (mu * (_2 / height - _1 / sma)) =~~ norm (orbit ^. angularMomentum . measure))
+    . adaptToleranceFor orbit
+  where height = (orbit ^. orbitBody . bodyRadius . measure) + orbit ^. apside
+        sma = orbit ^. semiMajorAxis . measure
+        mu = orbit ^. orbitMu . measure
 
 
 prop_AngularMomentumAtPe :: Property
 prop_AngularMomentumAtPe =
-  forAll genOrbits $ runApprox (checkAngularMomentumAtApside (view measure . _periapsis))
+  forAll genOrbits $ runApprox (checkAngularMomentumAtApside $ periapsis . measure)
 
 prop_AngularMomentumAtAp :: Property
 prop_AngularMomentumAtAp =
-  forAll genOrbits $ runApprox (checkAngularMomentumAtApside (view measure . _apoapsis))
+  forAll genOrbits $ runApprox (checkAngularMomentumAtApside $ apoapsis . measure)
 
 checkApPlusPePlusDiameterIsTwiceSma :: Orbit -> Dimensionless Double -> Bool
 checkApPlusPePlusDiameterIsTwiceSma orbit =
-  _2 * orbit ^. orbitBody . bodyRadius +
-    _apoapsis orbit ^. measure + _periapsis orbit ^. measure =~~ _2 * _semiMajorAxis orbit ^. measure
+  _2 * orbit ^. orbitBody . bodyRadius . measure +
+    orbit ^. apoapsis . measure + orbit ^. periapsis . measure =~~ _2 *  orbit ^. semiMajorAxis . measure
 
 prop_ApPeSma :: Property
 prop_ApPeSma = forAll genOrbits $ runApprox checkApPlusPePlusDiameterIsTwiceSma
 
 checkApPeEccentricity :: Orbit -> Dimensionless Double -> Bool
 checkApPeEccentricity orbit =
-  ((radius + _apoapsis orbit ^. measure) * (_1 - _eccentricity orbit ^. measure) =~~
-    (radius + _periapsis orbit ^. measure) * (_1 + _eccentricity orbit ^. measure)) .
+  ((radius + orbit ^. apoapsis . measure) * (_1 - orbit ^. eccentricity . measure) =~~
+    (radius + orbit ^. periapsis . measure) * (_1 + orbit ^. eccentricity . measure)) .
     adaptToleranceFor orbit
-  where radius = orbit ^. orbitBody . bodyRadius
+  where radius = orbit ^. orbitBody . bodyRadius . measure
 
 prop_ApPeEccentricity :: Property
 prop_ApPeEccentricity = forAll genOrbits $ runApprox checkApPeEccentricity
 
 checkHzInclination :: Orbit -> Dimensionless Double -> Bool
 checkHzInclination orbit =
-  orbit ^. angularMomentum . _z =~~ cos (_inclination orbit ^. measure) * norm (orbit ^. angularMomentum)
+  orbit ^. angularMomentum . measure . _z =~~
+    cos (orbit ^. inclination . measure) * norm (orbit ^. angularMomentum . measure)
 
 prop_HzInclination :: Property
 prop_HzInclination = forAll genOrbits $ runApprox checkHzInclination
 
 checkHxyRaan :: Orbit -> Dimensionless Double -> Bool
 checkHxyRaan orbit =
-  cos raan' * orbit ^. angularMomentum . _x =~~ negate (sin raan' * orbit ^. angularMomentum . _y)
-  where raan' = _rightAscensionOfAscendingNode orbit ^. measure
+  cos raan' * orbit ^. angularMomentum . measure . _x =~~
+    negate (sin raan' * orbit ^. angularMomentum . measure . _y)
+  where raan' = orbit ^. rightAscensionOfAscendingNode . measure
 
 prop_HxyRaan :: Property
 prop_HxyRaan = forAll genOrbits $ runApprox checkHxyRaan
 
 checkEzInclArgPe :: Orbit -> Dimensionless Double -> Bool
 checkEzInclArgPe orbit =
-  orbit ^. eccentricityVector . _z =~~
-    sin (_inclination orbit ^. measure) *
-    sin (_argumentOfPeriapsis orbit ^. measure) *
-    _eccentricity orbit ^. measure
+  orbit ^. eccentricityVector . measure . _z =~~
+    sin (orbit ^. inclination . measure) *
+    sin (orbit ^. argumentOfPeriapsis . measure) *
+    orbit ^. eccentricity . measure
 
 prop_EzInclArgPe :: Property
 prop_EzInclArgPe = forAll genOrbits $ runApprox checkEzInclArgPe
@@ -131,12 +134,12 @@ prop_EzInclArgPe = forAll genOrbits $ runApprox checkEzInclArgPe
 checkOrbitFromClassicalElements :: Orbit -> Dimensionless Double -> Bool
 checkOrbitFromClassicalElements orbit = orbit =~~ cOrbit
   where cOrbit = classical (orbit ^. orbitBodyId)
-                           (_semiMajorAxis orbit)
-                           (_eccentricity orbit)
-                           (_rightAscensionOfAscendingNode orbit)
-                           (_inclination orbit)
-                           (_argumentOfPeriapsis orbit)
-                           (orbit ^. meanAnomalyAtEpoch )
+                           (orbit ^. semiMajorAxis)
+                           (orbit ^. eccentricity)
+                           (orbit ^. rightAscensionOfAscendingNode)
+                           (orbit ^. inclination )
+                           (orbit ^. argumentOfPeriapsis)
+                           (orbit ^. meanAnomalyAtEpoch)
 
 prop_orbitFromClassicalElements :: Property
 prop_orbitFromClassicalElements = forAll genOrbits $ runApprox checkOrbitFromClassicalElements

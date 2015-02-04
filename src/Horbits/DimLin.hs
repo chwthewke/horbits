@@ -2,11 +2,12 @@
 
 
 module Horbits.DimLin(Horbits.DimLin.atan2, _x, _y, _z, _xy, _yx, zero, (^+^), (^-^), (^*), (*^), (^/), (*.), cross,
-  dot, quadrance, qd, distance, Horbits.DimLin.mod, norm, signorm, normalize, project, rotate, rotX, rotZ, v2, v3,
+  dot, quadrance, qd, distance, Horbits.DimLin.mod, norm, signorm, normalize, project, rotate, rotX, rotZ, v2, v3, v3',
   V1, V2, V3) where
 
 import           Control.Lens                 hiding ((*~))
 import qualified Data.Fixed                   as DF
+import           Horbits.Types
 import           Linear                       (Epsilon)
 import           Linear.Conjugate             (Conjugate)
 import qualified Linear.Metric                as N
@@ -19,9 +20,8 @@ import           Linear.V3                    (R3, V3 (..))
 import qualified Linear.V3                    as V3 (cross, _z)
 import qualified Linear.Vector                as V
 import           Numeric.NumType.TF           (Pos2, pos2)
-import           Numeric.Units.Dimensional.TF (DOne, Dimensional (..),
-                                               Dimensionless, Div, Mul, Pow,
-                                               Quantity, one, (*), (*~))
+import           Numeric.Units.Dimensional.TF (DOne, Dimensional (..), Dimensionless, Div, Mul, Pow, Quantity, one, (*),
+                                               (*~))
 import           Prelude                      hiding ((*))
 
 infixl 6 ^+^, ^-^
@@ -120,6 +120,9 @@ v2 (Dimensional x) (Dimensional y) = Dimensional $ V2 x y
 
 v3 :: Quantity d a -> Quantity d a -> Quantity d a -> Quantity d (V3 a)
 v3 (Dimensional x) (Dimensional y) (Dimensional z) = Dimensional $ V3 x y z
+
+v3' :: (Measure m, GetValue m ~ Quantity d (V3 a)) => Quantity d a -> Quantity d a -> Quantity d a -> m
+v3' qx qy qz = mkMeasure $ v3 qx qy qz
 
 cross :: (Num a) => Quantity d (V3 a) -> Quantity d' (V3 a) -> Quantity (Mul d d') (V3 a)
 cross = liftDM2 V3.cross

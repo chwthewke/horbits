@@ -3,6 +3,7 @@
 module Horbits.Body where
 
 import           Control.Lens                         hiding ((*~))
+import           Horbits.Types
 import           Numeric.Units.Dimensional.TF.Prelude
 import           Prelude                              hiding ((/), (^))
 
@@ -25,22 +26,22 @@ data BodyId =
   | Pol
   | Dres
   | Eeloo
-  deriving (Enum, Show, Eq)
+  deriving (Bounded, Enum, Show, Eq)
 
-data Atmosphere = Atmosphere { _atmosphereHeight      :: Length Double
-                             , _atmosphericPressure   :: Pressure Double
-                             , _atmosphereScaleHeight :: Length Double
+data Atmosphere = Atmosphere { _atmosphereHeight      :: AtmosphereHeight
+                             , _atmosphericPressure   :: AtmospherePressure
+                             , _atmosphereScaleHeight :: AtmosphereScaleHeight
                              } deriving (Show, Eq)
 makeLenses ''Atmosphere
 
-data Body = Body { _bodyGravitationalParam :: GravitationalParameter Double
-                 , _bodyRadius             :: Length Double
-                 , _bodySphereOfInfluence  :: Maybe (Length Double)
+data Body = Body { _bodyGravitationalParam :: BodyGravitationalParam
+                 , _bodyRadius             :: BodyRadius
+                 , _bodySphereOfInfluence  :: Maybe BodySoI
                  , _bodyAtmosphere         :: Maybe Atmosphere
                  } deriving (Show, Eq)
 makeLenses ''Body
 
-bodyAtmosphereHeight :: Getter Body (Maybe (Length Double))
+bodyAtmosphereHeight :: Getter Body (Maybe AtmosphereHeight)
 bodyAtmosphereHeight = pre (bodyAtmosphere . traverse . atmosphereHeight)
 
 getBody :: BodyId -> Body
@@ -63,12 +64,14 @@ getBody Pol = mkBody 7.2170208e8 44000 1.0421389e6 Nothing
 getBody Eeloo = mkBody 7.4410815e10 210000 1.1908294e8 Nothing
 
 mkAtmosphere :: Double -> Double -> Double -> Maybe Atmosphere
-mkAtmosphere h p s = Just $ Atmosphere (h *~ meter) (p *~ kilo pascal) (s *~ meter)
+mkAtmosphere h p s = Just $ Atmosphere (AtmosphereHeight $ h *~ meter)
+                                       (AtmospherePressure $ p *~ kilo pascal)
+                                       (AtmosphereScaleHeight $ s *~ meter)
 
 mkBody :: Double -> Double -> Double -> Maybe Atmosphere -> Body
-mkBody mu r soi = Body (mu *~ (meter ^ pos3 / second ^ pos2))
-                       (r *~ meter)
-                       (if soi == 0 then Nothing else Just (soi *~ meter))
+mkBody mu r soi = Body (BodyGravitationalParam $ mu *~ (meter ^ pos3 / second ^ pos2))
+                       (BodyRadius $ r *~ meter)
+                       (fmap BodySoI $ if soi == 0 then Nothing else Just (soi *~ meter))
 
 fromBodyId :: Getter BodyId Body
 fromBodyId = to getBody

@@ -3,17 +3,22 @@
 
 module Horbits.OrbitGen where
 
-import           Control.Lens                 ((^.))
-import           Data.Maybe                   (fromMaybe)
+import           Control.Applicative
+import           Control.Lens                         (view, (^.))
+import           Data.Maybe                           (fromMaybe)
 import           Horbits.Body
 import           Horbits.DimLin
 import           Horbits.Orbit
 import           Horbits.Types
-import           Linear.Metric                (Metric)
-import           Numeric.Units.Dimensional.TF hiding ((^/))
-import           Prelude                      hiding (cos, pi, sin, sqrt, (*), (+), (-), (/))
+import           Linear.Metric                        (Metric)
+import           Numeric.Units.Dimensional.TF         (Dimensional (Dimensional))
+import           Numeric.Units.Dimensional.TF.Prelude hiding (zero, (^/))
+import           Prelude                              hiding (cos, pi, sin, sqrt, (*), (+), (-), (/))
 import           System.Random
 import           Test.Framework
+
+anyBody :: Gen BodyId
+anyBody = arbitraryBoundedEnum
 
 
 chooseQuantity :: (Random a) => (Quantity d a, Quantity d a) -> Gen (Quantity d a)
@@ -46,29 +51,61 @@ randomOrbit :: BodyId ->
                  Gen Orbit
 randomOrbit body (loH, hiH) (loE, hiE) = do
         h <- sphericalV3 (loH, hiH)
-        e0 <- sphericalV3 (_0, _1)
+        e0 <- sphericalV3 (_1, _1)
         eN <- chooseQuantity (loE, hiE) `suchThat` (< _1)
         let e = e0 `mkOrth` h `withNorm` eN
-        return $ Orbit body h e (MeanAnomalyAtEpoch _0)
+        return $ Orbit body (mkMeasure h) (mkMeasure e) (MeanAnomalyAtEpoch _0)
 
 stdRandomOrbit :: BodyId -> Gen Orbit
 stdRandomOrbit body = randomOrbit body (loH, hiH) (_0, _1)
-  where loH = sqrt (body ^. fromBodyId . bodyGravitationalParam * minAlt)
-        hiH = sqrt (_2 * body ^. fromBodyId . bodyGravitationalParam * minAlt)
-        minAlt = body  ^. fromBodyId . bodyRadius + fromMaybe _0 (body ^. fromBodyId . bodyAtmosphereHeight)
+  where loH = sqrt (body ^. fromBodyId . bodyGravitationalParam . measure * minAlt)
+        hiH = sqrt (_2 * body ^. fromBodyId . bodyGravitationalParam . measure  * minAlt)
+        minAlt = body  ^. fromBodyId . bodyRadius . measure +
+                 fromMaybe _0 (view measure <$> body ^. fromBodyId . bodyAtmosphereHeight)
+
+capturedOrbit :: BodyId -> Gen Orbit
+capturedOrbit bodyId = do
+  ap <- chooseQuantity (minR, maxR)
+  pe <- chooseQuantity (minR, ap)
+  let sma = (ap + pe) / _2
+  let ecc = ap / sma - _1
+  raan <- chooseQuantity (_0, tau)
+  incl <- chooseQuantity (_0, pi)
+  argPe <- chooseQuantity (_0, tau)
+  maae <- chooseQuantity (_0, tau)
+  return $ classical bodyId (SemiMajorAxis sma)
+                            (Eccentricity ecc)
+                            (RightAscensionOfAscendingNode raan)
+                            (Inclination incl)
+                            (ArgumentOfPeriapsis argPe)
+                            (MeanAnomalyAtEpoch maae)
+  where body = getBody bodyId
+        minR = body ^. bodyRadius . measure + fromMaybe _0 (view measure <$> body ^. bodyAtmosphereHeight)
+        maxR = fromMaybe (1e12 *~ meter) (view measure <$> body ^. bodySphereOfInfluence)
+
+
+-- properties of generators
 
 orbitHasOrthogonalHAndE :: Orbit -> Bool
 orbitHasOrthogonalHAndE orbit = e `dot` h < 1e-12 *. (norm e * norm h)
-  where e = orbit ^. eccentricityVector
-        h = orbit ^. angularMomentum
+  where e = orbit ^. eccentricityVector . measure
+        h = orbit ^. angularMomentum . measure
 
 prop_generatedOrbitsHaveOrthogonalHAndE :: Property
 prop_generatedOrbitsHaveOrthogonalHAndE =
   forAll (stdRandomOrbit Kerbin) orbitHasOrthogonalHAndE
 
+prop_capturedOrbitsHaveOrthogonalHAndE :: Property
+prop_capturedOrbitsHaveOrthogonalHAndE =
+  forAll (anyBody >>= capturedOrbit) orbitHasOrthogonalHAndE
+
 orbitIsElliptical :: Orbit -> Bool
-orbitIsElliptical orbit = norm (orbit ^. eccentricityVector) < _1
+orbitIsElliptical orbit = norm (orbit ^. eccentricityVector . measure) < _1
 
 prop_generatedOrbitsAreElliptical :: Property
 prop_generatedOrbitsAreElliptical =
   forAll (stdRandomOrbit Kerbin) orbitIsElliptical
+
+prop_capturedOrbitsAreElliptical :: Property
+prop_capturedOrbitsAreElliptical =
+  forAll (anyBody >>= capturedOrbit) orbitIsElliptical

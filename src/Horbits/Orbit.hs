@@ -3,30 +3,30 @@
 
 module Horbits.Orbit
                      (Orbit(Orbit), orbitBodyId, angularMomentum, eccentricityVector, meanAnomalyAtEpoch,
-                      classical, bodyOrbit, orbitBody, orbitMu, _eccentricity, _semiMajorAxis, _apoapsis, _periapsis,
-                      _rightAscensionOfAscendingNode, _inclination, _argumentOfPeriapsis, _orbitalPeriod, _specificEnergy)
+                      classical, bodyOrbit, orbitBody, orbitMu,
+                      eccentricity, semiMajorAxis, apoapsis, periapsis,
+                      rightAscensionOfAscendingNode, inclination, argumentOfPeriapsis, orbitalPeriod, specificEnergy)
  where
 
+import           Control.Applicative
 import           Control.Lens                         hiding ((*~), _1, _2)
 import           Horbits.Body
 import           Horbits.DimLin
 import           Horbits.Types
-import           Numeric.Units.Dimensional.TF.Prelude hiding (atan2)
-import           Prelude                              hiding (atan2, negate, pi,
-                                                       sqrt, (*), (+), (-), (/),
-                                                       (^))
+import           Numeric.Units.Dimensional.TF.Prelude hiding (atan2, map)
+import           Prelude                              hiding (atan2, map, negate, pi, sqrt, (*), (+), (-), (/), (^))
 
 
 data Orbit = Orbit { _orbitBodyId        :: BodyId
-                   , _angularMomentum    :: SpecificAngularMomentum (V3 Double)
-                   , _eccentricityVector :: Dimensionless (V3 Double)
+                   , _angularMomentum    :: OrbitSpecificAngularMomentum (V3 Double)
+                   , _eccentricityVector :: Eccentricity (V3 Double)
                    , _meanAnomalyAtEpoch :: MeanAnomalyAtEpoch
                    } deriving (Show, Eq)
 makeLenses ''Orbit
 
 classical :: BodyId ->
              SemiMajorAxis ->
-             Eccentricity ->
+             Eccentricity Double ->
              RightAscensionOfAscendingNode ->
              Inclination ->
              ArgumentOfPeriapsis ->
@@ -38,10 +38,46 @@ classical b
   (RightAscensionOfAscendingNode lan)
   (Inclination i)
   (ArgumentOfPeriapsis p)
-    = Orbit b (rotate rot $ v3 _0 _0 h) (rotate rot $ v3 e _0 _0)
-  where h = sqrt $ a * b ^. fromBodyId . bodyGravitationalParam * (_1 - e ^ pos2)
+    = Orbit b (map (rotate rot) $ v3' _0 _0 h) (map (rotate rot) $ v3' e _0 _0)
+  where h = sqrt $ a * b ^. fromBodyId . bodyGravitationalParam . measure * (_1 - e ^ pos2)
         rot = rotZ lan * rotX i * rotZ p
 
+data ClassicalOrbit = ClassicalOrbit { _cOrbitBodyId                        :: BodyId
+                                     , _cOrbitSemiMajorAxis                 :: SemiMajorAxis
+                                     , _cOrbitEccentricity                  :: Eccentricity Double
+                                     , _cOrbitRightAscensionOfAscendingNode :: RightAscensionOfAscendingNode
+                                     , _cOrbitInclination                   :: Inclination
+                                     , _cOrbitArgumentOfPeriapsis           :: ArgumentOfPeriapsis
+                                     , _cOrbitMeanAnomalyAtEpoch            :: MeanAnomalyAtEpoch
+                                     }
+
+makeLensesFor [ ("_cOrbitEccentricity", "cOrbitEccentricity")
+              , ("_cOrbitSemiMajorAxis", "cOrbitSemiMajorAxis")
+              , ("_cOrbitRightAscensionOfAscendingNode", "cOrbitRightAscensionOfAscendingNode")
+              , ("_cOrbitInclination", "cOrbitInclination")
+              , ("_cOrbitArgumentOfPeriapsis", "cOrbitArgumentOfPeriapsis")
+              ] ''ClassicalOrbit
+
+orbitToClassical :: Orbit -> ClassicalOrbit
+orbitToClassical = ClassicalOrbit <$> _orbitBodyId
+                                  <*> _semiMajorAxis
+                                  <*> _eccentricity
+                                  <*> _rightAscensionOfAscendingNode
+                                  <*> _inclination
+                                  <*> _argumentOfPeriapsis
+                                  <*> _meanAnomalyAtEpoch
+
+classicalToOrbit :: ClassicalOrbit -> Orbit
+classicalToOrbit = classical <$> _cOrbitBodyId
+                             <*> _cOrbitSemiMajorAxis
+                             <*> _cOrbitEccentricity
+                             <*> _cOrbitRightAscensionOfAscendingNode
+                             <*> _cOrbitInclination
+                             <*> _cOrbitArgumentOfPeriapsis
+                             <*> _cOrbitMeanAnomalyAtEpoch
+
+classicalIso :: Iso' Orbit ClassicalOrbit
+classicalIso = iso orbitToClassical classicalToOrbit
 
 bodyOrbit :: BodyId -> Maybe Orbit
 bodyOrbit Kerbol = Nothing
@@ -147,47 +183,102 @@ bodyOrbit Eeloo  = Just $ classical Kerbol (SemiMajorAxis $ 90118820000 *~ meter
 orbitBody :: Getter Orbit Body
 orbitBody = orbitBodyId . fromBodyId
 
-orbitMu :: Getter Orbit (GravitationalParameter Double)
+orbitMu :: Getter Orbit BodyGravitationalParam
 orbitMu = orbitBody . bodyGravitationalParam
 
 sma0 :: Orbit -> Length Double
-sma0 orbit = quadrance (orbit ^. angularMomentum) / (orbit ^. orbitMu)
+sma0 orbit = quadrance (orbit ^. angularMomentum . measure) / (orbit ^. orbitMu . measure)
 
 eccentricityM :: Orbit -> Dimensionless Double
-eccentricityM orbit =  norm $ orbit ^. eccentricityVector
+eccentricityM orbit =  norm $ orbit ^. eccentricityVector . measure
 
-_eccentricity :: Orbit -> Eccentricity
+_eccentricity :: Orbit -> Eccentricity Double
 _eccentricity orbit = mkMeasure $ eccentricityM orbit
+
+-- TODO keep sma, except if sign (e - 1) changes, then what?
+_setEccentricity :: Orbit -> Eccentricity Double -> Orbit
+_setEccentricity orbit e = orbit & classicalIso . cOrbitEccentricity .~ e
+
+eccentricity :: Lens' Orbit (Eccentricity Double)
+eccentricity = lens _eccentricity _setEccentricity
 
 _semiMajorAxis :: Orbit -> SemiMajorAxis
 _semiMajorAxis orbit = mkMeasure $ sma0 orbit / (_1 - (eccentricityM orbit ^ pos2))
 
+_setSemiMajorAxis :: Orbit -> SemiMajorAxis -> Orbit
+_setSemiMajorAxis orbit sma = orbit & classicalIso . cOrbitSemiMajorAxis .~ sma
+
+semiMajorAxis :: Lens' Orbit SemiMajorAxis
+semiMajorAxis = lens _semiMajorAxis _setSemiMajorAxis
+
 _apoapsis :: Orbit -> Apoapsis
-_apoapsis orbit = mkMeasure $ sma0 orbit / (_1 - eccentricityM orbit) - orbit ^. orbitBody . bodyRadius
+_apoapsis orbit = mkMeasure $ sma0 orbit / (_1 - eccentricityM orbit) - orbit ^. orbitBody . bodyRadius . measure
+
+_setApoapsis :: Orbit -> Apoapsis -> Orbit
+_setApoapsis orbit ap = orbit & semiMajorAxis .~ SemiMajorAxis sma
+                              & eccentricity .~ Eccentricity e
+  where sma = orbit ^. semiMajorAxis . measure + (ap ^. measure - _apoapsis orbit ^. measure)
+        e = (ap ^. measure - _periapsis orbit ^. measure) / (_2 * sma)
+
+apoapsis :: Lens' Orbit Apoapsis
+apoapsis = lens _apoapsis _setApoapsis
 
 _periapsis :: Orbit -> Periapsis
-_periapsis orbit = mkMeasure $ sma0 orbit / (_1 + eccentricityM orbit) - orbit ^. orbitBody . bodyRadius
+_periapsis orbit = mkMeasure $ sma0 orbit / (_1 + eccentricityM orbit) - orbit ^. orbitBody . bodyRadius . measure
 
-_rightAscensionOfAscendingNode  :: Orbit -> RightAscensionOfAscendingNode
+_setPeriapsis :: Orbit -> Periapsis -> Orbit
+_setPeriapsis orbit pe = orbit & semiMajorAxis .~ SemiMajorAxis sma
+                               & eccentricity .~ Eccentricity e
+  where sma = orbit ^. semiMajorAxis . measure + (pe ^. measure - _periapsis orbit ^. measure)
+        e = (_apoapsis orbit ^. measure - pe ^. measure) / (_2 * sma)
+
+periapsis :: Lens' Orbit Periapsis
+periapsis = lens _periapsis _setPeriapsis
+
+
+_rightAscensionOfAscendingNode :: Orbit -> RightAscensionOfAscendingNode
 _rightAscensionOfAscendingNode orbit =
   mkMeasure $
-    atan2 (orbit ^. angularMomentum . _x) (negate $ orbit ^. angularMomentum . _y)
+    atan2 (orbit ^. angularMomentum . measure . _x) (negate $ orbit ^. angularMomentum . measure . _y)
+
+_setRightAscensionOfAscendingNode :: Orbit -> RightAscensionOfAscendingNode -> Orbit
+_setRightAscensionOfAscendingNode orbit raan = orbit & classicalIso . cOrbitRightAscensionOfAscendingNode .~ raan
+
+rightAscensionOfAscendingNode :: Lens' Orbit RightAscensionOfAscendingNode
+rightAscensionOfAscendingNode = lens _rightAscensionOfAscendingNode _setRightAscensionOfAscendingNode
 
 _inclination :: Orbit -> Inclination
-_inclination orbit = mkMeasure $ atan2 (norm $ orbit ^. angularMomentum . _xy) (orbit ^. angularMomentum . _z)
+_inclination orbit = mkMeasure $ atan2 (norm $ orbit ^. angularMomentum . measure . _xy) (orbit ^. angularMomentum . measure . _z)
+
+_setInclination :: Orbit -> Inclination -> Orbit
+_setInclination orbit incl = orbit & classicalIso . cOrbitInclination .~ incl
+
+inclination :: Lens' Orbit Inclination
+inclination = lens _inclination _setInclination
 
 _argumentOfPeriapsis :: Orbit -> ArgumentOfPeriapsis
 _argumentOfPeriapsis orbit = mkMeasure $ atan2 y x
   where y = quadrance (h ^. _xy) * (e ^. _z) - ((h ^. _xy) `dot` (e ^. _xy)) * (h ^. _z)
         x = norm h * (h ^. _x * e ^. _y - h ^. _y * e ^. _x)
-        h = orbit ^. angularMomentum
-        e = orbit ^. eccentricityVector
+        h = orbit ^. angularMomentum . measure
+        e = orbit ^. eccentricityVector . measure
 
-_orbitalPeriod :: Orbit -> Time Double
-_orbitalPeriod orbit = tau * sqrt (sma ^ pos3 / orbit ^. orbitMu)
+_setArgumentOfPeriapsis :: Orbit -> ArgumentOfPeriapsis -> Orbit
+_setArgumentOfPeriapsis orbit argpe = orbit & classicalIso . cOrbitArgumentOfPeriapsis .~ argpe
+
+argumentOfPeriapsis :: Lens' Orbit ArgumentOfPeriapsis
+argumentOfPeriapsis = lens _argumentOfPeriapsis _setArgumentOfPeriapsis
+
+_orbitalPeriod :: Orbit -> OrbitalPeriod
+_orbitalPeriod orbit = mkMeasure $ tau * sqrt (sma ^ pos3 / orbit ^. orbitMu . measure)
   where SemiMajorAxis sma = _semiMajorAxis orbit
 
-_specificEnergy :: Orbit -> SpecificEnergy Double
-_specificEnergy orbit = negate $ orbit ^. orbitMu / (_2 * sma)
+orbitalPeriod :: Getter Orbit OrbitalPeriod
+orbitalPeriod = to _orbitalPeriod
+
+_specificEnergy :: Orbit -> OrbitSpecificEnergy
+_specificEnergy orbit = mkMeasure . negate $ orbit ^. orbitMu . measure / (_2 * sma)
   where SemiMajorAxis sma = _semiMajorAxis orbit
 
+specificEnergy :: Getter Orbit OrbitSpecificEnergy
+specificEnergy = to _specificEnergy

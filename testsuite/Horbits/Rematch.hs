@@ -1,12 +1,16 @@
 module Horbits.Rematch where
 
+import Control.Lens (Getting, (^.))
 import           Control.Rematch
 import           Control.Rematch.Formatting
 import           Control.Rematch.Run
 import           Test.QuickCheck
 
-has :: (String, b -> a) -> Matcher a -> (String, Matcher b)
-has (n, f) m = (n, on m (f, n))
+--has :: (String, b -> a) -> Matcher a -> (String, Matcher b)
+--has (n, f) m = (n, on m (f, n))
+
+has :: (String, Getting a s a) -> Matcher a -> (String, Matcher s)
+has (n, g) m = (n, on m ((^. g), n))
 
 always :: Bool -> Matcher a
 always b = Matcher (const b) ("const" ++ show b) (const $ "always " ++ show b)

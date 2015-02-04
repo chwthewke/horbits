@@ -17,13 +17,10 @@ import           Control.Lens                         ((^.))
 import           Control.Rematch
 import           Horbits.DimLin
 import           Horbits.Orbit
+import           Horbits.Types
 import           Linear.Metric                        (Metric)
 import           Numeric.Units.Dimensional.TF.Prelude hiding (mod)
-import           Prelude                              hiding (abs, mod, pi, (*),
-                                                       (+), (-))
-
--- TODO TypeFamilies or FunDeps might help with the ascriptions in isEquatorial, isCircular,
--- but wait until we have all instances
+import           Prelude                              hiding (abs, mod, pi, (*), (+), (-))
 
 infix 4 =~, =~~
 infixr 3 &&&, |||
@@ -54,8 +51,8 @@ instance (d ~ Mul DOne d, Metric f) => RelativeApproximateEq (Quantity d (f Doub
   (=~~) actual expected tolerance = norm (actual ^-^ expected) <= tolerance * norm expected
 
 instance RelativeApproximateEq Orbit (Dimensionless Double) where
-  (=~~) actual expected = (actual ^. eccentricityVector) =~~ (expected ^. eccentricityVector) &&&
-                          (actual ^. angularMomentum) =~~ (expected ^. angularMomentum)
+  (=~~) actual expected = (actual ^. eccentricityVector . measure) =~~ (expected ^. eccentricityVector . measure) &&&
+                          (actual ^. angularMomentum . measure) =~~ (expected ^. angularMomentum . measure)
 
 approxMatch :: (Show a, Show t) =>
                  (a -> a -> t -> Bool) -> a -> t -> Matcher a
