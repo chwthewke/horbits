@@ -13,7 +13,8 @@ import           Horbits.Types
 import           Linear.Metric                        (Metric)
 import           Numeric.Units.Dimensional.TF         (Dimensional (Dimensional))
 import           Numeric.Units.Dimensional.TF.Prelude hiding (zero, (^/))
-import           Prelude                              hiding (cos, pi, sin, sqrt, (*), (+), (-), (/))
+import           Prelude                              hiding (cos, pi, sin,
+                                                       sqrt, (*), (+), (-), (/))
 import           System.Random
 import           Test.Framework
 
@@ -64,7 +65,7 @@ stdRandomOrbit body = randomOrbit body (loH, hiH) (_0, _1)
                  fromMaybe _0 (view measure <$> body ^. fromBodyId . bodyAtmosphereHeight)
 
 capturedOrbit :: BodyId -> Gen Orbit
-capturedOrbit bodyId = do
+capturedOrbit bId = do
   ap <- chooseQuantity (minR, maxR)
   pe <- chooseQuantity (minR, ap)
   let sma = (ap + pe) / _2
@@ -73,13 +74,13 @@ capturedOrbit bodyId = do
   incl <- chooseQuantity (_0, pi)
   argPe <- chooseQuantity (_0, tau)
   maae <- chooseQuantity (_0, tau)
-  return $ classical bodyId (SemiMajorAxis sma)
+  return $ classical bId (SemiMajorAxis sma)
                             (Eccentricity ecc)
                             (RightAscensionOfAscendingNode raan)
                             (Inclination incl)
                             (ArgumentOfPeriapsis argPe)
                             (MeanAnomalyAtEpoch maae)
-  where body = getBody bodyId
+  where body = getBody bId
         minR = body ^. bodyRadius . measure + fromMaybe _0 (view measure <$> body ^. bodyAtmosphereHeight)
         maxR = fromMaybe (1e12 *~ meter) (view measure <$> body ^. bodySphereOfInfluence)
 

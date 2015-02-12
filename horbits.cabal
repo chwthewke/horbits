@@ -9,7 +9,9 @@ executable horbits
   main-is:         Main.hs
   build-depends:   
                    base >= 4,
+                   transformers >= 0.3 && < 0.4,
                    lens >= 4.6.0.1 && < 4.7,
+                   containers >= 0.5.5.1 && < 0.6,
                    dimensional-tf >= 0.3.0.1 && < 0.4,
                    linear >= 1.15.4 && < 1.16,
                    numtype-tf >= 0.1.2 && < 0.2,
@@ -21,7 +23,10 @@ executable horbits
                    Horbits.DimLin,
                    Horbits.Orbit,
                    Horbits.Types,
-                   Horbits.Body
+                   Horbits.Body,
+                   Horbits.UI.BodyList,
+                   Horbits.SolarSystem,
+                   Horbits.UI.BodyDetails
 
 library
   build-depends:   base >= 4
@@ -32,6 +37,10 @@ library
                    Horbits.DimLin,
                    Horbits.Orbit,
                    Horbits.Types
+  other-modules:   
+                   Horbits.UI.BodyList,
+                   Horbits.SolarSystem,
+                   Horbits.UI.BodyDetails
 
 test-suite HorbitsTests
   type:            exitcode-stdio-1.0
@@ -52,7 +61,10 @@ test-suite HorbitsTests
                   Horbits.Rematch,
                   Horbits.OrbitGen,
                   Horbits.Body,
-                  Horbits.OrbitClassicalTest
+                  Horbits.OrbitClassicalTest,
+                  Horbits.UI.BodyList,
+                  Horbits.SolarSystem,
+                  Horbits.UI.BodyDetails
   hs-source-dirs:  
                   src,
                   testsuite

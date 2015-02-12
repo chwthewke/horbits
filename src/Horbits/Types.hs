@@ -9,25 +9,25 @@ import           Numeric.Units.Dimensional.TF.Prelude
 type DSpecificAngularMomentum = Dim Pos2 Zero Neg1 Zero Zero Zero Zero
 type SpecificAngularMomentum = Quantity DSpecificAngularMomentum
 
-newtype AtmosphereHeight = AtmosphereHeight (Length Double) deriving (Show, Eq)
-newtype AtmospherePressure = AtmospherePressure (Pressure Double) deriving (Show, Eq)
-newtype AtmosphereScaleHeight = AtmosphereScaleHeight (Length Double) deriving (Show, Eq)
+newtype AtmosphereHeight = AtmosphereHeight (Length Double) deriving (Show, Eq, Ord)
+newtype AtmospherePressure = AtmospherePressure (Pressure Double) deriving (Show, Eq, Ord)
+newtype AtmosphereScaleHeight = AtmosphereScaleHeight (Length Double) deriving (Show, Eq, Ord)
 
-newtype BodyGravitationalParam = BodyGravitationalParam (GravitationalParameter Double) deriving (Show, Eq)
-newtype BodyRadius = BodyRadius (Length Double) deriving (Show, Eq)
-newtype BodySoI = BodySoI (Length Double) deriving (Show, Eq)
+newtype BodyGravitationalParam = BodyGravitationalParam (GravitationalParameter Double) deriving (Show, Eq, Ord)
+newtype BodyRadius = BodyRadius (Length Double) deriving (Show, Eq, Ord)
+newtype BodySoI = BodySoI (Length Double) deriving (Show, Eq, Ord)
 
-newtype OrbitSpecificAngularMomentum t = OrbitSpecificAngularMomentum (SpecificAngularMomentum t) deriving (Show, Eq)
-newtype SemiMajorAxis = SemiMajorAxis (Length Double) deriving (Show, Eq)
-newtype Eccentricity t = Eccentricity (Dimensionless t) deriving (Show, Eq)
-newtype RightAscensionOfAscendingNode = RightAscensionOfAscendingNode (Dimensionless Double) deriving (Show, Eq)
-newtype Inclination = Inclination (Dimensionless Double) deriving (Show, Eq)
-newtype ArgumentOfPeriapsis = ArgumentOfPeriapsis (Dimensionless Double) deriving (Show, Eq)
-newtype MeanAnomalyAtEpoch = MeanAnomalyAtEpoch (Dimensionless Double) deriving (Show, Eq)
-newtype Apoapsis = Apoapsis (Length Double) deriving (Show, Eq)
-newtype Periapsis = Periapsis (Length Double) deriving (Show, Eq)
-newtype OrbitalPeriod = OrbitalPeriod (Time Double) deriving (Show, Eq)
-newtype OrbitSpecificEnergy = OrbitSpecificEnergy (SpecificEnergy Double) deriving (Show, Eq)
+newtype OrbitSpecificAngularMomentum t = OrbitSpecificAngularMomentum (SpecificAngularMomentum t) deriving (Show, Eq, Ord)
+newtype SemiMajorAxis = SemiMajorAxis (Length Double) deriving (Show, Eq, Ord)
+newtype Eccentricity t = Eccentricity (Dimensionless t) deriving (Show, Eq, Ord)
+newtype RightAscensionOfAscendingNode = RightAscensionOfAscendingNode (Dimensionless Double) deriving (Show, Eq, Ord)
+newtype Inclination = Inclination (Dimensionless Double) deriving (Show, Eq, Ord)
+newtype ArgumentOfPeriapsis = ArgumentOfPeriapsis (Dimensionless Double) deriving (Show, Eq, Ord)
+newtype MeanAnomalyAtEpoch = MeanAnomalyAtEpoch (Dimensionless Double) deriving (Show, Eq, Ord)
+newtype Apoapsis = Apoapsis (Length Double) deriving (Show, Eq, Ord)
+newtype Periapsis = Periapsis (Length Double) deriving (Show, Eq, Ord)
+newtype OrbitalPeriod = OrbitalPeriod (Time Double) deriving (Show, Eq, Ord)
+newtype OrbitSpecificEnergy = OrbitSpecificEnergy (SpecificEnergy Double) deriving (Show, Eq, Ord)
 
 -- TODO Control.Lens.Wrapped
 
@@ -40,6 +40,11 @@ class Measure t where
 
 measure :: (Measure t) => Iso' t (GetValue t)
 measure = iso getValue mkMeasure
+
+instance Measure (Identity a) where
+  type GetValue (Identity a) = a
+  mkMeasure = Identity
+  getValue = runIdentity
 
 instance Measure AtmosphereHeight where
   type GetValue AtmosphereHeight = Length Double

@@ -34,7 +34,9 @@ data Atmosphere = Atmosphere { _atmosphereHeight      :: AtmosphereHeight
                              } deriving (Show, Eq)
 makeLenses ''Atmosphere
 
-data Body = Body { _bodyGravitationalParam :: BodyGravitationalParam
+data Body = Body { _bodyId                 :: BodyId
+                 , _bodyName               :: String
+                 , _bodyGravitationalParam :: BodyGravitationalParam
                  , _bodyRadius             :: BodyRadius
                  , _bodySphereOfInfluence  :: Maybe BodySoI
                  , _bodyAtmosphere         :: Maybe Atmosphere
@@ -45,31 +47,32 @@ bodyAtmosphereHeight :: Getter Body (Maybe AtmosphereHeight)
 bodyAtmosphereHeight = pre (bodyAtmosphere . traverse . atmosphereHeight)
 
 getBody :: BodyId -> Body
-getBody Kerbol = mkBody 1.1723328e18 261600000 0 Nothing
-getBody Moho = mkBody 1.6860938e11 250000 9.6466630e6 Nothing
-getBody Eve = mkBody 8.1717302e12 700000 8.5109365e7 $ mkAtmosphere 96708.574 506.625 7000
-getBody Gilly = mkBody 8.2894498e6 13000 1.2612327e5 Nothing
-getBody Kerbin = mkBody 3.5316e12 600000 8.4159286e7 $ mkAtmosphere 69077.53 101.325 5000
-getBody Mun = mkBody 6.5138398e10 200000 2.4295591e6 Nothing
-getBody Minmus = mkBody 1.7658000e9 60000 2.2474284e6 Nothing
-getBody Duna = mkBody 3.0136321e11 320000 4.7921949e7 $ mkAtmosphere 41446.532 20.2650 3000
-getBody Ike = mkBody 1.8568369e10 130000 1.0495989e6 Nothing
-getBody Dres = mkBody 2.1484489e10 138000 3.2832840e7 Nothing
-getBody Jool = mkBody 2.8252800e14 6000000 2.4559852e9 $ mkAtmosphere 138155.11 1519.88 10000
-getBody Laythe = mkBody 1.9620000e12 500000 3.7236458e6 $ mkAtmosphere 55262.042 81.0600 4000
-getBody Vall = mkBody 2.0748150e11 300000 2.4064014e6 Nothing
-getBody Tylo = mkBody 2.8252800e12 600000 1.0856518e7 Nothing
-getBody Bop = mkBody 2.4868349e9 65000 1.2210609e6 Nothing
-getBody Pol = mkBody 7.2170208e8 44000 1.0421389e6 Nothing
-getBody Eeloo = mkBody 7.4410815e10 210000 1.1908294e8 Nothing
+getBody Kerbol = mkBody Kerbol "Kerbol" 1.1723328e18 261600000 0 Nothing
+getBody Moho = mkBody Moho "Moho" 1.6860938e11 250000 9.6466630e6 Nothing
+getBody Eve = mkBody Eve "Eve" 8.1717302e12 700000 8.5109365e7 $ mkAtmosphere 96708.574 506.625 7000
+getBody Gilly = mkBody Gilly "Gilly" 8.2894498e6 13000 1.2612327e5 Nothing
+getBody Kerbin = mkBody Kerbin "Kerbin" 3.5316e12 600000 8.4159286e7 $ mkAtmosphere 69077.53 101.325 5000
+getBody Mun = mkBody Mun "Mun" 6.5138398e10 200000 2.4295591e6 Nothing
+getBody Minmus = mkBody Minmus "Minmus" 1.7658000e9 60000 2.2474284e6 Nothing
+getBody Duna = mkBody Duna "Duna" 3.0136321e11 320000 4.7921949e7 $ mkAtmosphere 41446.532 20.2650 3000
+getBody Ike = mkBody Ike "Ike" 1.8568369e10 130000 1.0495989e6 Nothing
+getBody Dres = mkBody Dres "Dres" 2.1484489e10 138000 3.2832840e7 Nothing
+getBody Jool = mkBody Jool "Jool" 2.8252800e14 6000000 2.4559852e9 $ mkAtmosphere 138155.11 1519.88 10000
+getBody Laythe = mkBody Laythe "Laythe" 1.9620000e12 500000 3.7236458e6 $ mkAtmosphere 55262.042 81.0600 4000
+getBody Vall = mkBody Vall "Vall" 2.0748150e11 300000 2.4064014e6 Nothing
+getBody Tylo = mkBody Tylo "Tylo" 2.8252800e12 600000 1.0856518e7 Nothing
+getBody Bop = mkBody Bop "Bop" 2.4868349e9 65000 1.2210609e6 Nothing
+getBody Pol = mkBody Pol "Pol" 7.2170208e8 44000 1.0421389e6 Nothing
+getBody Eeloo = mkBody Eeloo "Eeloo" 7.4410815e10 210000 1.1908294e8 Nothing
 
 mkAtmosphere :: Double -> Double -> Double -> Maybe Atmosphere
 mkAtmosphere h p s = Just $ Atmosphere (AtmosphereHeight $ h *~ meter)
                                        (AtmospherePressure $ p *~ kilo pascal)
                                        (AtmosphereScaleHeight $ s *~ meter)
 
-mkBody :: Double -> Double -> Double -> Maybe Atmosphere -> Body
-mkBody mu r soi = Body (BodyGravitationalParam $ mu *~ (meter ^ pos3 / second ^ pos2))
+mkBody :: BodyId -> String -> Double -> Double -> Double -> Maybe Atmosphere -> Body
+mkBody bId n mu r soi = Body bId n
+                       (BodyGravitationalParam $ mu *~ (meter ^ pos3 / second ^ pos2))
                        (BodyRadius $ r *~ meter)
                        (fmap BodySoI $ if soi == 0 then Nothing else Just (soi *~ meter))
 
