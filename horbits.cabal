@@ -12,7 +12,10 @@ executable horbits
                    lens >= 4.6.0.1 && < 4.7,
                    dimensional-tf >= 0.3.0.1 && < 0.4,
                    linear >= 1.15.4 && < 1.16,
-                   numtype-tf >= 0.1.2 && < 0.2
+                   numtype-tf >= 0.1.2 && < 0.2,
+                   OpenGL >= 2.10.0.1 && < 2.11,
+                   gtk >= 0.12.5.7 && < 0.13,
+                   gtkglext >= 0.12.5.0 && < 0.13
   ghc-options:     -Wall
   other-modules:   
                    Horbits.DimLin,
