@@ -1,7 +1,9 @@
 module Main where
 
-import           Control.Lens                 hiding (set)
-import           Graphics.Rendering.OpenGL.GL
+import           Control.Lens                  hiding (set)
+import           Foreign.Marshal.Array
+import           Graphics.Rendering.OpenGL.GL  as GL
+import           Graphics.Rendering.OpenGL.GLU
 import           Graphics.UI.Gtk
 import           Graphics.UI.Gtk.OpenGL
 import           Horbits.Body
@@ -53,7 +55,7 @@ setupProj _ = do
   clearColor $= Color4 0.0 0.0 1.0 0.0
   matrixMode $= Projection
   loadIdentity
-  ortho 0.0 1.0 0.0 1.0 (-1.0) 1.0
+  ortho (-1.0) 1.0 (-1.0) 1.0 (-1.0) 1.0
   depthFunc $= Just Less
   drawBuffer $= BackBuffers
 
@@ -70,8 +72,33 @@ setupDrawLoop canvas draw = do
 
 drawCanvas :: IO ()
 drawCanvas = do
+    drawEllipse (Color3 1.0 0.5 0.0 :: Color3 GLfloat) 0.7 0.3
+    drawEllipse (Color3 0.0 1.0 0.5 :: Color3 GLfloat) 0.6 0.2
     color (Color3 1.0 1.0 1.0 :: Color3 GLfloat)
     renderPrimitive Polygon $ do
         vertex (Vertex3 0.0 0.0 0.0 :: Vertex3 GLfloat)
         vertex (Vertex3 1.0 0.0 0.0 :: Vertex3 GLfloat)
         vertex (Vertex3 0.0 1.0 0.0 :: Vertex3 GLfloat)
+    GL.flush
+
+drawEllipse :: (GL.Color c) =>  c -> GLfloat -> GLfloat -> IO ()
+drawEllipse c a b = do
+    color c
+    withNURBSObj () $ \nurbsObj ->
+        nurbsBeginEndCurve nurbsObj $
+            withArrayLen knots $ \nKnots knots' ->
+                withArray controls $ \controls' ->
+                    nurbsCurve nurbsObj (fromIntegral nKnots) knots' 4 controls' 3
+  where
+    knots = [0, 0, 0, 0.25, 0.25, 0.5, 0.5, 0.75, 0.75, 1, 1, 1]
+    weights = let q = sqrt 0.5 in [1, q, 1, q, 1, q, 1, q, 1]
+    points = [(a, 0), (a, b), (0, b),
+              (-a, b), (-a, 0), (-a, -b),
+              (0, -b), (a, -b), (a, 0)]
+    mkControl (x, y) w = Vertex4 (x*w) (y*w) 0 w :: Vertex4 GLfloat
+    controls = zipWith mkControl points weights
+
+
+
+
+
