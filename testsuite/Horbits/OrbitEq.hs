@@ -50,8 +50,9 @@ instance (d ~ Mul DOne d, Metric f) => RelativeApproximateEq (Quantity d (f Doub
     (=~~) actual expected tolerance = norm (actual ^-^ expected) <= tolerance * norm expected
 
 instance RelativeApproximateEq Orbit (Dimensionless Double) where
-    (=~~) actual expected = (actual ^. eccentricityVector . _Wrapped') =~~ (expected ^. eccentricityVector . _Wrapped') &&&
-                          (actual ^. angularMomentum . _Wrapped') =~~ (expected ^. angularMomentum . _Wrapped')
+    (=~~) actual expected =
+        (actual ^. eccentricityVector . _Wrapped') =~~ (expected ^. eccentricityVector . _Wrapped') &&&
+            (actual ^. angularMomentum . _Wrapped') =~~ (expected ^. angularMomentum . _Wrapped')
 
 approxMatch :: (Show a, Show t) => (a -> a -> t -> Bool) -> a -> t -> Matcher a
 approxMatch appr expected tolerance = Matcher (\actual -> appr actual expected tolerance)

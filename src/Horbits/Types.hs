@@ -32,7 +32,8 @@ newtype BodySoI = BodySoI (Length Double) deriving (Show, Eq, Ord)
 makeWrapped ''BodySoI
 
 
-newtype OrbitSpecificAngularMomentum t = OrbitSpecificAngularMomentum (SpecificAngularMomentum t) deriving (Show, Eq, Ord)
+newtype OrbitSpecificAngularMomentum t = OrbitSpecificAngularMomentum (SpecificAngularMomentum t)
+    deriving (Show, Eq, Ord)
 makeWrapped ''OrbitSpecificAngularMomentum
 
 newtype SemiMajorAxis = SemiMajorAxis (Length Double) deriving (Show, Eq, Ord)
