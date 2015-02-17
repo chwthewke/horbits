@@ -1,13 +1,10 @@
 module Horbits.Rematch where
 
-import Control.Lens (Getting, (^.))
+import           Control.Lens               (Getting, (^.))
 import           Control.Rematch
 import           Control.Rematch.Formatting
 import           Control.Rematch.Run
 import           Test.QuickCheck
-
---has :: (String, b -> a) -> Matcher a -> (String, Matcher b)
---has (n, f) m = (n, on m (f, n))
 
 has :: (String, Getting a s a) -> Matcher a -> (String, Matcher s)
 has (n, g) m = (n, on m ((^. g), n))
@@ -21,7 +18,8 @@ allOf' nm = Matcher {
     match = and . fmap isMatch . matches,
     description = describeList "all" $ map (description . snd) nm,
     describeMismatch = join "," . foldr consMatch [] . matches
-  } where
+    }
+  where
     matches a = fmap (\ (n, m) -> (n, match m a, describeMismatch m a)) nm
     consMatch (_, True, _) = id
     consMatch (n, False, f) = ((n ++ " " ++ f) :)

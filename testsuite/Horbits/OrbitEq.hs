@@ -13,11 +13,10 @@ module Horbits.OrbitEq
   where
 
 import           Control.Applicative
-import           Control.Lens                         ((^.))
+import           Control.Lens                         hiding (_1)
 import           Control.Rematch
 import           Horbits.DimLin
 import           Horbits.Orbit
-import           Horbits.Types
 import           Linear.Metric                        (Metric)
 import           Numeric.Units.Dimensional.TF.Prelude hiding (mod)
 import           Prelude                              hiding (abs, mod, pi, (*), (+), (-))
@@ -32,39 +31,37 @@ infixr 3 &&&, |||
 (|||) = liftA2 (||)
 
 class AbsoluteApproximateEq a b where
-  (=~) :: a -> a -> b -> Bool
-  absClose :: a -> a -> b -> Bool
-  absClose = (=~)
+    (=~) :: a -> a -> b -> Bool
+    absClose :: a -> a -> b -> Bool
+    absClose = (=~)
 
 class RelativeApproximateEq a b where
-  (=~~) :: a -> a -> b -> Bool
-  relClose :: a -> a -> b -> Bool
-  relClose = (=~~)
+    (=~~) :: a -> a -> b -> Bool
+    relClose :: a -> a -> b -> Bool
+    relClose = (=~~)
 
 instance AbsoluteApproximateEq (Quantity d Double) (Quantity d Double) where
-  (=~) actual expected tolerance = abs (expected - actual) <= abs tolerance
+    (=~) actual expected tolerance = abs (expected - actual) <= abs tolerance
 
 instance (d ~ Mul DOne d) => RelativeApproximateEq (Quantity d Double) (Dimensionless Double) where
-  (=~~) actual expected tolerance = abs (expected - actual) <= tolerance * abs expected
+    (=~~) actual expected tolerance = abs (expected - actual) <= tolerance * abs expected
 
 instance (d ~ Mul DOne d, Metric f) => RelativeApproximateEq (Quantity d (f Double)) (Dimensionless Double) where
-  (=~~) actual expected tolerance = norm (actual ^-^ expected) <= tolerance * norm expected
+    (=~~) actual expected tolerance = norm (actual ^-^ expected) <= tolerance * norm expected
 
 instance RelativeApproximateEq Orbit (Dimensionless Double) where
-  (=~~) actual expected = (actual ^. eccentricityVector . measure) =~~ (expected ^. eccentricityVector . measure) &&&
-                          (actual ^. angularMomentum . measure) =~~ (expected ^. angularMomentum . measure)
+    (=~~) actual expected = (actual ^. eccentricityVector . _Wrapped') =~~ (expected ^. eccentricityVector . _Wrapped') &&&
+                          (actual ^. angularMomentum . _Wrapped') =~~ (expected ^. angularMomentum . _Wrapped')
 
-approxMatch :: (Show a, Show t) =>
-                 (a -> a -> t -> Bool) -> a -> t -> Matcher a
-approxMatch op expected tolerance = Matcher (\actual -> op actual expected tolerance)
-                                            ("within " ++ show tolerance ++ " of " ++ show expected)
-                                            standardMismatch
+approxMatch :: (Show a, Show t) => (a -> a -> t -> Bool) -> a -> t -> Matcher a
+approxMatch appr expected tolerance = Matcher (\actual -> appr actual expected tolerance)
+                                              ("within " ++ show tolerance ++ " of " ++ show expected)
+                                              standardMismatch
 
-approxMatchSym :: (Show a, Show t) =>
-                 (a -> a -> t -> Bool) -> t -> Matcher (a, a)
-approxMatchSym op tolerance = Matcher (\(l, r) -> op l r tolerance)
-                                      ("within " ++ show tolerance ++ " of each other")
-                                      standardMismatch
+approxMatchSym :: (Show a, Show t) => (a -> a -> t -> Bool) -> t -> Matcher (a, a)
+approxMatchSym appr tolerance = Matcher (\(l, r) -> appr l r tolerance)
+                                        ("within " ++ show tolerance ++ " of each other")
+                                        standardMismatch
 
 closeTo :: (Show a, Show t, AbsoluteApproximateEq a t) => a -> t -> Matcher a
 closeTo = approxMatch (=~)

@@ -9,7 +9,6 @@ import           Control.Monad
 import           Data.Monoid
 import           Graphics.UI.Gtk
 import           Horbits.Body
-import           Horbits.Types
 import           Numeric.Units.Dimensional.TF.Prelude
 
 data BodyDetailsPane = BodyDetailsPane { bodyDetailsPaneView    :: VBox
@@ -23,12 +22,12 @@ bodyDetailsPaneNew = do
     forM_ detailLabels (containerAdd pane . bodyDetailLabelView)
     return $ BodyDetailsPane pane (sequence_ . mapM bodyDetailLabelSetBody detailLabels)
 
-data Detail = forall a b. (Show a, Measure b, a ~ GetValue b) => Detail String a (Getting b Body b)
+data Detail = forall a. (Show a) => Detail String a (Getting a Body a)
 
 details :: [Detail]
-details = [ Detail "Name" mempty $ bodyName . to Identity
-          , Detail "Gravitational parameter" _0 bodyGravitationalParam
-          , Detail "Radius" _0 bodyRadius
+details = [ Detail "Name" mempty bodyName
+          , Detail "Gravitational parameter" _0 (bodyGravitationalParam . _Wrapped')
+          , Detail "Radius" _0 (bodyRadius . _Wrapped')
           ]
 
 data BodyDetailLabel = BodyDetailLabel { bodyDetailLabelView    :: HBox
@@ -42,6 +41,7 @@ bodyDetailLabelNew (Detail name def prop) = do
     valueLabel <- labelNew . Just $ show def
     _ <- containerAdd hb descLabel
     _ <- containerAdd hb valueLabel
-    return $ BodyDetailLabel hb (labelSetText valueLabel . show . getValue . view prop)
+    return $ BodyDetailLabel hb (labelSetText valueLabel . show . view prop)
+
 
 

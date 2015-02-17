@@ -4,7 +4,7 @@
 module Horbits.OrbitGen where
 
 import           Control.Applicative
-import           Control.Lens                         (view, (^.))
+import           Control.Lens                         hiding ((*~), _1, _2)
 import           Data.Maybe                           (fromMaybe)
 import           Horbits.Body
 import           Horbits.DimLin
@@ -13,14 +13,12 @@ import           Horbits.Types
 import           Linear.Metric                        (Metric)
 import           Numeric.Units.Dimensional.TF         (Dimensional (Dimensional))
 import           Numeric.Units.Dimensional.TF.Prelude hiding (zero, (^/))
-import           Prelude                              hiding (cos, pi, sin,
-                                                       sqrt, (*), (+), (-), (/))
+import           Prelude                              hiding (cos, pi, sin, sqrt, (*), (+), (-), (/))
 import           System.Random
 import           Test.Framework
 
 anyBody :: Gen BodyId
 anyBody = arbitraryBoundedEnum
-
 
 chooseQuantity :: (Random a) => (Quantity d a, Quantity d a) -> Gen (Quantity d a)
 chooseQuantity (Dimensional lo, Dimensional hi) = do
@@ -55,14 +53,14 @@ randomOrbit body (loH, hiH) (loE, hiE) = do
         e0 <- sphericalV3 (_1, _1)
         eN <- chooseQuantity (loE, hiE) `suchThat` (< _1)
         let e = e0 `mkOrth` h `withNorm` eN
-        return $ Orbit body (mkMeasure h) (mkMeasure e) (MeanAnomalyAtEpoch _0)
+        return $ Orbit body (OrbitSpecificAngularMomentum h) (Eccentricity e) (MeanAnomalyAtEpoch _0)
 
 stdRandomOrbit :: BodyId -> Gen Orbit
 stdRandomOrbit body = randomOrbit body (loH, hiH) (_0, _1)
-  where loH = sqrt (body ^. fromBodyId . bodyGravitationalParam . measure * minAlt)
-        hiH = sqrt (_2 * body ^. fromBodyId . bodyGravitationalParam . measure  * minAlt)
-        minAlt = body  ^. fromBodyId . bodyRadius . measure +
-                 fromMaybe _0 (view measure <$> body ^. fromBodyId . bodyAtmosphereHeight)
+  where loH = sqrt (body ^. fromBodyId . bodyGravitationalParam . _Wrapped' * minAlt)
+        hiH = sqrt (_2 * body ^. fromBodyId . bodyGravitationalParam . _Wrapped'  * minAlt)
+        minAlt = body  ^. fromBodyId . bodyRadius . _Wrapped' +
+                 fromMaybe _0 (view _Wrapped' <$> body ^. fromBodyId . bodyAtmosphereHeight)
 
 capturedOrbit :: BodyId -> Gen Orbit
 capturedOrbit bId = do
@@ -81,16 +79,16 @@ capturedOrbit bId = do
                             (ArgumentOfPeriapsis argPe)
                             (MeanAnomalyAtEpoch maae)
   where body = getBody bId
-        minR = body ^. bodyRadius . measure + fromMaybe _0 (view measure <$> body ^. bodyAtmosphereHeight)
-        maxR = fromMaybe (1e12 *~ meter) (view measure <$> body ^. bodySphereOfInfluence)
+        minR = body ^. bodyRadius . _Wrapped' + fromMaybe _0 (view _Wrapped' <$> body ^. bodyAtmosphereHeight)
+        maxR = fromMaybe (1e12 *~ meter) (view _Wrapped' <$> body ^. bodySphereOfInfluence)
 
 
 -- properties of generators
 
 orbitHasOrthogonalHAndE :: Orbit -> Bool
 orbitHasOrthogonalHAndE orbit = e `dot` h < 1e-12 *. (norm e * norm h)
-  where e = orbit ^. eccentricityVector . measure
-        h = orbit ^. angularMomentum . measure
+  where e = orbit ^. eccentricityVector . _Wrapped'
+        h = orbit ^. angularMomentum . _Wrapped'
 
 prop_generatedOrbitsHaveOrthogonalHAndE :: Property
 prop_generatedOrbitsHaveOrthogonalHAndE =
@@ -101,7 +99,7 @@ prop_capturedOrbitsHaveOrthogonalHAndE =
   forAll (anyBody >>= capturedOrbit) orbitHasOrthogonalHAndE
 
 orbitIsElliptical :: Orbit -> Bool
-orbitIsElliptical orbit = norm (orbit ^. eccentricityVector . measure) < _1
+orbitIsElliptical orbit = norm (orbit ^. eccentricityVector . _Wrapped') < _1
 
 prop_generatedOrbitsAreElliptical :: Property
 prop_generatedOrbitsAreElliptical =

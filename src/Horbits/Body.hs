@@ -10,23 +10,23 @@ import           Prelude                              hiding ((/), (^))
 
 data BodyId =
     Kerbol
-  | Kerbin
-  | Mun
-  | Minmus
-  | Moho
-  | Eve
-  | Duna
-  | Ike
-  | Jool
-  | Laythe
-  | Vall
-  | Bop
-  | Tylo
-  | Gilly
-  | Pol
-  | Dres
-  | Eeloo
-  deriving (Bounded, Enum, Show, Eq)
+    | Kerbin
+    | Mun
+    | Minmus
+    | Moho
+    | Eve
+    | Duna
+    | Ike
+    | Jool
+    | Laythe
+    | Vall
+    | Bop
+    | Tylo
+    | Gilly
+    | Pol
+    | Dres
+    | Eeloo
+    deriving (Bounded, Enum, Show, Eq)
 
 data Atmosphere = Atmosphere { _atmosphereHeight      :: AtmosphereHeight
                              , _atmosphericPressure   :: AtmospherePressure
@@ -72,9 +72,9 @@ mkAtmosphere h p s = Just $ Atmosphere (AtmosphereHeight $ h *~ meter)
 
 mkBody :: BodyId -> String -> Double -> Double -> Double -> Maybe Atmosphere -> Body
 mkBody bId n mu r soi = Body bId n
-                       (BodyGravitationalParam $ mu *~ (meter ^ pos3 / second ^ pos2))
-                       (BodyRadius $ r *~ meter)
-                       (fmap BodySoI $ if soi == 0 then Nothing else Just (soi *~ meter))
+                        (BodyGravitationalParam $ mu *~ (meter ^ pos3 / second ^ pos2))
+                        (BodyRadius $ r *~ meter)
+                        (fmap BodySoI $ if soi == 0 then Nothing else Just (soi *~ meter))
 
 fromBodyId :: Getter BodyId Body
 fromBodyId = to getBody
