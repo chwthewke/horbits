@@ -3,8 +3,8 @@
 module Horbits.Body (Atmosphere, Body, BodyId(..), gravitationalConstant, atmosphereHeight, atmosphereScaleHeight,
     atmosphericPressure, bodyId, bodyName, bodyGravitationalParam, bodyRadius, bodySiderealRotationPeriod,
     bodySphereOfInfluence, bodyAtmosphere, bodyAtmosphereHeight, bodyAtmosphereScaleHeight, bodyAtmosphericPressure,
-    bodySurfaceArea, bodyMass, bodyDensity, bodySurfaceGravity, bodyEscapeVelocity, bodySynchronousOrbitAltitude,
-    getBody, fromBodyId)
+    bodySurfaceArea, bodyMass, bodyDensity, bodySurfaceGravity, bodyEscapeVelocity, bodySiderealRotationVelocity,
+    bodySynchronousOrbitAltitude, getBody, fromBodyId)
   where
 
 import           Control.Lens                         hiding ((*~), _2, _3, _4)
@@ -46,13 +46,16 @@ data Body = Body { _bodyId                     :: BodyId
                  , _bodyGravitationalParam     :: GravitationalParameter Double
                  , _bodyRadius                 :: Length Double
                  , _bodySiderealRotationPeriod :: Time Double
-                 , _bodySphereOfInfluence      :: Maybe (Length Double)
+                 , _bodySoI                    :: Maybe (Length Double)
                  , _bodyAtmosphere             :: Maybe Atmosphere
                  } deriving (Show, Eq)
 
 makeLenses ''Body
 
 -- Derived properties
+bodySphereOfInfluence :: Fold Body (Length Double)
+bodySphereOfInfluence = bodySoI . _Just
+
 bodyAtmosphereHeight :: Getter Body (Maybe (Length Double))
 bodyAtmosphereHeight = pre (bodyAtmosphere . traverse . atmosphereHeight)
 
@@ -85,6 +88,12 @@ bodyEscapeVelocity = to $ do
     mu <- view bodyGravitationalParam
     radius <- view bodyRadius
     return $ sqrt (_2 * mu / radius)
+
+bodySiderealRotationVelocity :: Getter Body (Velocity Double)
+bodySiderealRotationVelocity = to $ do
+    period <- view bodySiderealRotationPeriod
+    r <- view bodyRadius
+    return $ _2 * pi * r / period
 
 bodySynchronousOrbitAltitude :: Getter Body (Length Double)
 bodySynchronousOrbitAltitude = to $ do
@@ -124,7 +133,7 @@ getPhysicalAttrs Kerbol = mkPhysicalAttrs 261600000 432000
 getPhysicalAttrs Moho = mkPhysicalAttrs 250000 1210000
 getPhysicalAttrs Eve = mkPhysicalAttrs 700000 80500
 getPhysicalAttrs Gilly = mkPhysicalAttrs 13000 28255
-getPhysicalAttrs Kerbin = mkPhysicalAttrs 60000 21600
+getPhysicalAttrs Kerbin = mkPhysicalAttrs 600000 21600
 getPhysicalAttrs Mun = mkPhysicalAttrs 200000 138984.38
 getPhysicalAttrs Minmus = mkPhysicalAttrs 60000 40400
 getPhysicalAttrs Duna = mkPhysicalAttrs 320000 65517.859

@@ -74,7 +74,7 @@ capturedOrbit bId = do
   return $ classical bId sma ecc raan incl argPe maae
   where body = getBody bId
         minR = body ^. bodyRadius + fromMaybe _0 (body ^. bodyAtmosphereHeight)
-        maxR = fromMaybe (1e12 *~ meter) (body ^. bodySphereOfInfluence)
+        maxR = fromMaybe (1e12 *~ meter) (body ^? bodySphereOfInfluence)
 
 
 -- properties of generators
