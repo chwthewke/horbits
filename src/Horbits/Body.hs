@@ -1,12 +1,20 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Horbits.Body where
+module Horbits.Body (Atmosphere, Body, BodyId(..), gravitationalConstant, atmosphereHeight, atmosphereScaleHeight,
+    atmosphericPressure, bodyId, bodyName, bodyGravitationalParam, bodyRadius, bodySiderealRotationPeriod,
+    bodySphereOfInfluence, bodyAtmosphere, bodyAtmosphereHeight, bodyAtmosphereScaleHeight, bodyAtmosphericPressure,
+    bodySurfaceArea, bodyMass, bodyDensity, bodySurfaceGravity, bodyEscapeVelocity, bodySynchronousOrbitAltitude,
+    getBody, fromBodyId)
+  where
 
-import           Control.Lens                         hiding ((*~))
+import           Control.Lens                         hiding ((*~), _2, _3, _4)
 import           Horbits.Types
 import           Numeric.Units.Dimensional.TF.Prelude
-import           Prelude                              hiding ((/), (^))
+import           Prelude                              hiding (pi, sqrt, (*), (-), (/), (^))
 
+
+gravitationalConstant :: Quantity (Div DGravitationalParameter DMass) Double
+gravitationalConstant =  6.67384e-11 *~ ((meter ^ pos3) / kilo gram / (second ^ pos2))
 
 data BodyId =
     Kerbol
@@ -34,48 +42,123 @@ data Atmosphere = Atmosphere { _atmosphereHeight      :: AtmosphereHeight
                              } deriving (Show, Eq)
 makeLenses ''Atmosphere
 
-data Body = Body { _bodyId                 :: BodyId
-                 , _bodyName               :: String
-                 , _bodyGravitationalParam :: BodyGravitationalParam
-                 , _bodyRadius             :: BodyRadius
-                 , _bodySphereOfInfluence  :: Maybe BodySoI
-                 , _bodyAtmosphere         :: Maybe Atmosphere
+data Body = Body { _bodyId                     :: BodyId
+                 , _bodyName                   :: String
+                 , _bodyGravitationalParam     :: BodyGravitationalParam
+                 , _bodyRadius                 :: BodyRadius
+                 , _bodySiderealRotationPeriod :: BodySiderealRotationPeriod
+                 , _bodySphereOfInfluence      :: Maybe BodySoI
+                 , _bodyAtmosphere             :: Maybe Atmosphere
                  } deriving (Show, Eq)
+
 makeLenses ''Body
 
+-- Derived properties
 bodyAtmosphereHeight :: Getter Body (Maybe AtmosphereHeight)
 bodyAtmosphereHeight = pre (bodyAtmosphere . traverse . atmosphereHeight)
 
+bodyAtmosphericPressure :: Getter Body (Maybe AtmospherePressure)
+bodyAtmosphericPressure = pre (bodyAtmosphere . traverse . atmosphericPressure)
+
+bodyAtmosphereScaleHeight :: Getter Body (Maybe AtmosphereScaleHeight)
+bodyAtmosphereScaleHeight = pre (bodyAtmosphere . traverse . atmosphereScaleHeight)
+
+bodySurfaceArea :: Getter Body BodySurfaceArea
+bodySurfaceArea = bodyRadius . _Wrapped' . to (\r -> _4 * pi * r * r) . _Unwrapped'
+
+bodyMass :: Getter Body BodyMass
+bodyMass = bodyGravitationalParam . _Wrapped' . to (BodyMass . (/ gravitationalConstant))
+
+bodyDensity :: Getter Body BodyDensity
+bodyDensity = to $ do
+    mass <- view $ bodyMass . _Wrapped'
+    radius <- view $ bodyRadius . _Wrapped'
+    return . BodyDensity $ mass / (_4 / _3 * pi * radius ^ pos3)
+
+bodySurfaceGravity :: Getter Body BodySurfaceGravity
+bodySurfaceGravity = to $ do
+    mu <- view $ bodyGravitationalParam . _Wrapped'
+    radius <- view $ bodyRadius . _Wrapped'
+    return . BodySurfaceGravity $ mu / (radius ^ pos2)
+
+bodyEscapeVelocity :: Getter Body BodyEscapeVelocity
+bodyEscapeVelocity = to $ do
+    mu <- view $ bodyGravitationalParam . _Wrapped'
+    radius <- view $ bodyRadius . _Wrapped'
+    return . BodyEscapeVelocity $ sqrt (_2 * mu / radius)
+
+bodySynchronousOrbitAltitude :: Getter Body BodySynchronousOrbitAltitude
+bodySynchronousOrbitAltitude = to $ do
+    period <- view $ bodySiderealRotationPeriod . _Wrapped'
+    mu <- view $ bodyGravitationalParam . _Wrapped'
+    radius <- view $ bodyRadius . _Wrapped'
+    return . BodySynchronousOrbitAltitude $ cbrt (mu * (period / (_2 * pi)) ^ pos2) - radius
+
+-- Data
 getBody :: BodyId -> Body
-getBody Kerbol = mkBody Kerbol "Kerbol" 1.1723328e18 261600000 0 Nothing
-getBody Moho = mkBody Moho "Moho" 1.6860938e11 250000 9.6466630e6 Nothing
-getBody Eve = mkBody Eve "Eve" 8.1717302e12 700000 8.5109365e7 $ mkAtmosphere 96708.574 506.625 7000
-getBody Gilly = mkBody Gilly "Gilly" 8.2894498e6 13000 1.2612327e5 Nothing
-getBody Kerbin = mkBody Kerbin "Kerbin" 3.5316e12 600000 8.4159286e7 $ mkAtmosphere 69077.53 101.325 5000
-getBody Mun = mkBody Mun "Mun" 6.5138398e10 200000 2.4295591e6 Nothing
-getBody Minmus = mkBody Minmus "Minmus" 1.7658000e9 60000 2.2474284e6 Nothing
-getBody Duna = mkBody Duna "Duna" 3.0136321e11 320000 4.7921949e7 $ mkAtmosphere 41446.532 20.2650 3000
-getBody Ike = mkBody Ike "Ike" 1.8568369e10 130000 1.0495989e6 Nothing
-getBody Dres = mkBody Dres "Dres" 2.1484489e10 138000 3.2832840e7 Nothing
-getBody Jool = mkBody Jool "Jool" 2.8252800e14 6000000 2.4559852e9 $ mkAtmosphere 138155.11 1519.88 10000
-getBody Laythe = mkBody Laythe "Laythe" 1.9620000e12 500000 3.7236458e6 $ mkAtmosphere 55262.042 81.0600 4000
-getBody Vall = mkBody Vall "Vall" 2.0748150e11 300000 2.4064014e6 Nothing
-getBody Tylo = mkBody Tylo "Tylo" 2.8252800e12 600000 1.0856518e7 Nothing
-getBody Bop = mkBody Bop "Bop" 2.4868349e9 65000 1.2210609e6 Nothing
-getBody Pol = mkBody Pol "Pol" 7.2170208e8 44000 1.0421389e6 Nothing
-getBody Eeloo = mkBody Eeloo "Eeloo" 7.4410815e10 210000 1.1908294e8 Nothing
+getBody bId = Body bId (show bId) mu r t soi atm
+  where
+    (mu, soi) = getOrbitalAttrs bId
+    (r, t) = getPhysicalAttrs bId
+    atm = getAtmosphere bId
+
+
+fromBodyId :: Getter BodyId Body
+fromBodyId = to getBody
 
 mkAtmosphere :: Double -> Double -> Double -> Maybe Atmosphere
 mkAtmosphere h p s = Just $ Atmosphere (AtmosphereHeight $ h *~ meter)
                                        (AtmospherePressure $ p *~ kilo pascal)
                                        (AtmosphereScaleHeight $ s *~ meter)
 
-mkBody :: BodyId -> String -> Double -> Double -> Double -> Maybe Atmosphere -> Body
-mkBody bId n mu r soi = Body bId n
-                        (BodyGravitationalParam $ mu *~ (meter ^ pos3 / second ^ pos2))
-                        (BodyRadius $ r *~ meter)
-                        (fmap BodySoI $ if soi == 0 then Nothing else Just (soi *~ meter))
+getAtmosphere :: BodyId -> Maybe Atmosphere
+getAtmosphere Eve = mkAtmosphere 96708.574 506.625 7000
+getAtmosphere Kerbin = mkAtmosphere 69077.53 101.325 5000
+getAtmosphere Duna = mkAtmosphere 41446.532 20.2650 3000
+getAtmosphere Jool = mkAtmosphere 138155.11 1519.88 10000
+getAtmosphere Laythe = mkAtmosphere 55262.042 81.0600 4000
+getAtmosphere _ = Nothing
 
-fromBodyId :: Getter BodyId Body
-fromBodyId = to getBody
+mkPhysicalAttrs :: Double -> Double -> (BodyRadius, BodySiderealRotationPeriod)
+mkPhysicalAttrs r t = (BodyRadius $ r *~ meter, BodySiderealRotationPeriod $ t *~ second)
 
+getPhysicalAttrs :: BodyId -> (BodyRadius, BodySiderealRotationPeriod)
+getPhysicalAttrs Kerbol = mkPhysicalAttrs 261600000 432000
+getPhysicalAttrs Moho = mkPhysicalAttrs 250000 1210000
+getPhysicalAttrs Eve = mkPhysicalAttrs 700000 80500
+getPhysicalAttrs Gilly = mkPhysicalAttrs 13000 28255
+getPhysicalAttrs Kerbin = mkPhysicalAttrs 60000 21600
+getPhysicalAttrs Mun = mkPhysicalAttrs 200000 138984.38
+getPhysicalAttrs Minmus = mkPhysicalAttrs 60000 40400
+getPhysicalAttrs Duna = mkPhysicalAttrs 320000 65517.859
+getPhysicalAttrs Ike = mkPhysicalAttrs 130000 65517.862
+getPhysicalAttrs Dres = mkPhysicalAttrs 138000 34800
+getPhysicalAttrs Jool = mkPhysicalAttrs 6000000 36000
+getPhysicalAttrs Laythe = mkPhysicalAttrs 500000 52980.879
+getPhysicalAttrs Vall = mkPhysicalAttrs 300000 105962.09
+getPhysicalAttrs Tylo = mkPhysicalAttrs 600000 211926.36
+getPhysicalAttrs Bop = mkPhysicalAttrs 65000 544507.40
+getPhysicalAttrs Pol = mkPhysicalAttrs 44000 901902.62
+getPhysicalAttrs Eeloo = mkPhysicalAttrs 210000 19460
+
+mkOrbitalAttrs :: Double -> Double -> (BodyGravitationalParam, Maybe BodySoI)
+mkOrbitalAttrs mu r = (BodyGravitationalParam $ mu *~ (meter ^ pos3 / second ^ pos2), Just . BodySoI $ r *~ meter)
+
+getOrbitalAttrs :: BodyId -> (BodyGravitationalParam, Maybe BodySoI)
+getOrbitalAttrs Kerbol = (BodyGravitationalParam $ 1.1723328e18 *~ (meter ^ pos3 / second ^ pos2), Nothing)
+getOrbitalAttrs Moho = mkOrbitalAttrs 1.6860938e11 9.6466630e6
+getOrbitalAttrs Eve = mkOrbitalAttrs 8.1717302e12 8.5109365e7
+getOrbitalAttrs Gilly = mkOrbitalAttrs 8.2894498e6 1.2612327e5
+getOrbitalAttrs Kerbin = mkOrbitalAttrs 3.5316e12 8.4159286e7
+getOrbitalAttrs Mun = mkOrbitalAttrs 6.5138398e10 2.4295591e6
+getOrbitalAttrs Minmus = mkOrbitalAttrs 1.7658000e9 2.2474284e6
+getOrbitalAttrs Duna = mkOrbitalAttrs 3.0136321e11 4.7921949e7
+getOrbitalAttrs Ike = mkOrbitalAttrs 1.8568369e10 1.0495989e6
+getOrbitalAttrs Dres = mkOrbitalAttrs 2.1484489e10 3.2832840e7
+getOrbitalAttrs Jool = mkOrbitalAttrs 2.8252800e14 2.4559852e9
+getOrbitalAttrs Laythe = mkOrbitalAttrs 1.9620000e12 3.7236458e6
+getOrbitalAttrs Vall = mkOrbitalAttrs 2.0748150e11 2.4064014e6
+getOrbitalAttrs Tylo = mkOrbitalAttrs 2.8252800e12 1.0856518e7
+getOrbitalAttrs Bop = mkOrbitalAttrs 2.4868349e9 1.2210609e6
+getOrbitalAttrs Pol = mkOrbitalAttrs 7.2170208e8 1.0421389e6
+getOrbitalAttrs Eeloo = mkOrbitalAttrs 7.4410815e10 1.1908294e8

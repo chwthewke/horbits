@@ -28,9 +28,29 @@ makeWrapped ''BodyGravitationalParam
 newtype BodyRadius = BodyRadius (Length Double) deriving (Show, Eq, Ord)
 makeWrapped ''BodyRadius
 
+newtype BodySiderealRotationPeriod = BodySiderealRotationPeriod (Time Double) deriving (Show, Eq, Ord)
+makeWrapped ''BodySiderealRotationPeriod
+
 newtype BodySoI = BodySoI (Length Double) deriving (Show, Eq, Ord)
 makeWrapped ''BodySoI
 
+newtype BodySurfaceArea = BodySurfaceArea (Area Double) deriving (Show, Eq, Ord)
+makeWrapped ''BodySurfaceArea
+
+newtype BodyMass = BodyMass (Mass Double) deriving (Show, Eq, Ord)
+makeWrapped ''BodyMass
+
+newtype BodyDensity = BodyDensity (Density Double) deriving (Show, Eq, Ord)
+makeWrapped ''BodyDensity
+
+newtype BodySurfaceGravity = BodySurfaceGravity (Acceleration Double) deriving (Show, Eq, Ord)
+makeWrapped ''BodySurfaceGravity
+
+newtype BodyEscapeVelocity = BodyEscapeVelocity (Velocity Double) deriving (Show, Eq, Ord)
+makeWrapped ''BodyEscapeVelocity
+
+newtype BodySynchronousOrbitAltitude = BodySynchronousOrbitAltitude (Length Double) deriving (Show, Eq, Ord)
+makeWrapped ''BodySynchronousOrbitAltitude
 
 newtype OrbitSpecificAngularMomentum t = OrbitSpecificAngularMomentum (SpecificAngularMomentum t)
     deriving (Show, Eq, Ord)
