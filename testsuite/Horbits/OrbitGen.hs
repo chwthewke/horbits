@@ -3,7 +3,6 @@
 
 module Horbits.OrbitGen where
 
-import           Control.Applicative
 import           Control.Lens                         hiding ((*~), _1, _2)
 import           Data.Maybe                           (fromMaybe)
 import           Horbits.Body
@@ -53,14 +52,14 @@ randomOrbit body (loH, hiH) (loE, hiE) = do
         e0 <- sphericalV3 (_1, _1)
         eN <- chooseQuantity (loE, hiE) `suchThat` (< _1)
         let e = e0 `mkOrth` h `withNorm` eN
-        return $ Orbit body (OrbitSpecificAngularMomentum h) (Eccentricity e) (MeanAnomalyAtEpoch _0)
+        return $ Orbit body h e _0
 
 stdRandomOrbit :: BodyId -> Gen Orbit
 stdRandomOrbit body = randomOrbit body (loH, hiH) (_0, _1)
-  where loH = sqrt (body ^. fromBodyId . bodyGravitationalParam . _Wrapped' * minAlt)
-        hiH = sqrt (_2 * body ^. fromBodyId . bodyGravitationalParam . _Wrapped'  * minAlt)
-        minAlt = body  ^. fromBodyId . bodyRadius . _Wrapped' +
-                 fromMaybe _0 (view _Wrapped' <$> body ^. fromBodyId . bodyAtmosphereHeight)
+  where loH = sqrt (body ^. fromBodyId . bodyGravitationalParam * minAlt)
+        hiH = sqrt (_2 * body ^. fromBodyId . bodyGravitationalParam  * minAlt)
+        minAlt = body  ^. fromBodyId . bodyRadius +
+                 fromMaybe _0 (body ^. fromBodyId . bodyAtmosphereHeight)
 
 capturedOrbit :: BodyId -> Gen Orbit
 capturedOrbit bId = do
@@ -72,23 +71,18 @@ capturedOrbit bId = do
   incl <- chooseQuantity (_0, pi)
   argPe <- chooseQuantity (_0, tau)
   maae <- chooseQuantity (_0, tau)
-  return $ classical bId (SemiMajorAxis sma)
-                            (Eccentricity ecc)
-                            (RightAscensionOfAscendingNode raan)
-                            (Inclination incl)
-                            (ArgumentOfPeriapsis argPe)
-                            (MeanAnomalyAtEpoch maae)
+  return $ classical bId sma ecc raan incl argPe maae
   where body = getBody bId
-        minR = body ^. bodyRadius . _Wrapped' + fromMaybe _0 (view _Wrapped' <$> body ^. bodyAtmosphereHeight)
-        maxR = fromMaybe (1e12 *~ meter) (view _Wrapped' <$> body ^. bodySphereOfInfluence)
+        minR = body ^. bodyRadius + fromMaybe _0 (body ^. bodyAtmosphereHeight)
+        maxR = fromMaybe (1e12 *~ meter) (body ^. bodySphereOfInfluence)
 
 
 -- properties of generators
 
 orbitHasOrthogonalHAndE :: Orbit -> Bool
 orbitHasOrthogonalHAndE orbit = e `dot` h < 1e-12 *. (norm e * norm h)
-  where e = orbit ^. eccentricityVector . _Wrapped'
-        h = orbit ^. angularMomentum . _Wrapped'
+  where e = orbit ^. eccentricityVector
+        h = orbit ^. angularMomentum
 
 prop_generatedOrbitsHaveOrthogonalHAndE :: Property
 prop_generatedOrbitsHaveOrthogonalHAndE =
@@ -99,7 +93,7 @@ prop_capturedOrbitsHaveOrthogonalHAndE =
   forAll (anyBody >>= capturedOrbit) orbitHasOrthogonalHAndE
 
 orbitIsElliptical :: Orbit -> Bool
-orbitIsElliptical orbit = norm (orbit ^. eccentricityVector . _Wrapped') < _1
+orbitIsElliptical orbit = norm (orbit ^. eccentricityVector) < _1
 
 prop_generatedOrbitsAreElliptical :: Property
 prop_generatedOrbitsAreElliptical =

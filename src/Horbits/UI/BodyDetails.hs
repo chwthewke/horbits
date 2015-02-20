@@ -26,8 +26,8 @@ data Detail = forall a. (Show a) => Detail String a (Getting a Body a)
 
 details :: [Detail]
 details = [ Detail "Name" mempty bodyName
-          , Detail "Gravitational parameter" _0 (bodyGravitationalParam . _Wrapped')
-          , Detail "Radius" _0 (bodyRadius . _Wrapped')
+          , Detail "Gravitational parameter" _0 bodyGravitationalParam
+          , Detail "Radius" _0 bodyRadius
           ]
 
 data BodyDetailLabel = BodyDetailLabel { bodyDetailLabelView    :: HBox

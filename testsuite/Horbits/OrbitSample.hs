@@ -1,10 +1,9 @@
 module Horbits.OrbitSample where
 
-import           Control.Lens                         hiding ((*~), elements)
+import           Control.Lens                         hiding (elements, (*~))
 import           Horbits.Body
 import           Horbits.DimLin
 import           Horbits.Orbit
-import           Horbits.Types
 import           Numeric.Units.Dimensional.TF.Prelude
 import           Prelude                              hiding (negate, pi, sqrt, (*))
 import           Test.QuickCheck
@@ -20,118 +19,94 @@ data OrbitSample = OrbitSample { desc  :: String
                                , pe    :: Length Double
                                } deriving (Show)
 
-orbitSample :: String
-               -> Orbit
-               -> SemiMajorAxis
-               -> Eccentricity Double
-               -> RightAscensionOfAscendingNode
-               -> Inclination
-               -> ArgumentOfPeriapsis
-               -> Apoapsis
-               -> Periapsis
-               -> OrbitSample
-orbitSample desc'
-            orbit'
-            (SemiMajorAxis sma')
-            (Eccentricity e')
-            (RightAscensionOfAscendingNode raan')
-            (Inclination incl')
-            (ArgumentOfPeriapsis arg')
-            (Apoapsis ap')
-            (Periapsis pe') =
-  OrbitSample desc' orbit' sma' e' raan' incl' arg' ap' pe'
-
 sampleOrbits :: [OrbitSample]
-sampleOrbits = [orbitSample "Circular equatorial 100km"
-                            (Orbit Kerbin (v3' _0 _0 (sqrt hSq0)) (v3' _0 _0 _0) (MeanAnomalyAtEpoch _0))
-                            (SemiMajorAxis $ 700000 *~ meter)
-                            (Eccentricity _0)
-                            (RightAscensionOfAscendingNode _0)
-                            (Inclination _0)
-                            (ArgumentOfPeriapsis _0)
-                            (Apoapsis $ 100000 *~ meter)
-                            (Periapsis $ 100000 *~ meter),
+sampleOrbits = [OrbitSample "Circular equatorial 100km"
+                            (Orbit Kerbin (v3 _0 _0 (sqrt hSq0)) (v3 _0 _0 _0) _0)
+                            (700000 *~ meter)
+                            _0
+                            _0
+                            _0
+                            _0
+                            (100000 *~ meter)
+                            (100000 *~ meter),
 
-                orbitSample "Circular equatorial retrograde 100km"
-                            (Orbit Kerbin (v3' _0 _0 (negate $ sqrt hSq0)) (v3' _0 _0 _0) (MeanAnomalyAtEpoch _0))
-                            (SemiMajorAxis $ 700000 *~ meter)
-                            (Eccentricity _0)
-                            (RightAscensionOfAscendingNode _0)
-                            (Inclination pi)
-                            (ArgumentOfPeriapsis _0)
-                            (Apoapsis $ 100000 *~ meter)
-                            (Periapsis $ 100000 *~ meter),
+                OrbitSample "Circular equatorial retrograde 100km"
+                            (Orbit Kerbin (v3 _0 _0 (negate $ sqrt hSq0)) (v3 _0 _0 _0) _0)
+                            (700000 *~ meter)
+                            _0
+                            _0
+                            (180 *~ degree)
+                            _0
+                            (100000 *~ meter)
+                            (100000 *~ meter),
 
-                orbitSample "Elliptical (e = 0.2) equatorial with arg.pe = 0"
-                            (Orbit Kerbin (v3' _0 _0 (sqrt $ 0.96 *. hSq0)) (v3' (0.2 *~ one) _0 _0)
-                                (MeanAnomalyAtEpoch _0))
-                            (SemiMajorAxis $ 700000 *~ meter)
-                            (Eccentricity $ 0.2 *~ one)
-                            (RightAscensionOfAscendingNode _0)
-                            (Inclination _0)
-                            (ArgumentOfPeriapsis _0)
-                            (Apoapsis $ 240000 *~ meter)
-                            (Periapsis $ (-40000) *~ meter),
+                OrbitSample "Elliptical (e = 0.2) equatorial with arg.pe = 0"
+                            (Orbit Kerbin (v3 _0 _0 (sqrt $ 0.96 *. hSq0)) (v3 (0.2 *~ one) _0 _0) _0)
+                            (700000 *~ meter)
+                            (0.2 *~ one)
+                            _0
+                            _0
+                            _0
+                            (240000 *~ meter)
+                            ((-40000) *~ meter),
 
-                orbitSample "Circular 45� incl, raan = 0�"
-                            (Orbit Kerbin (v3' _0 (negate . sqrt $ 0.5 *. hSq0) (sqrt $ 0.5 *. hSq0)) (v3' _0 _0 _0)
-                                (MeanAnomalyAtEpoch _0))
-                            (SemiMajorAxis $ 700000 *~ meter)
-                            (Eccentricity _0)
-                            (RightAscensionOfAscendingNode _0)
-                            (Inclination $ 0.25 *. pi)
-                            (ArgumentOfPeriapsis _0)
-                            (Apoapsis $ 100000 *~ meter)
-                            (Periapsis $ 100000 *~ meter),
+                OrbitSample "Circular 45 deg. incl, raan = 0"
+                            (Orbit Kerbin (v3 _0 (negate . sqrt $ 0.5 *. hSq0) (sqrt $ 0.5 *. hSq0)) (v3 _0 _0 _0) _0)
+                            (700000 *~ meter)
+                            _0
+                            _0
+                            (45 *~ degree)
+                            _0
+                            (100000 *~ meter)
+                            (100000 *~ meter),
 
-                orbitSample "Circular 45� incl, raan = 45�"
-                            (Orbit Kerbin (v3' (sqrt $ 0.25 *. hSq0) 
-                                (negate . sqrt $ 0.25 *. hSq0) (sqrt $ 0.5 *. hSq0))
-                                (v3' _0 _0 _0) (MeanAnomalyAtEpoch _0))
-                            (SemiMajorAxis $ 700000 *~ meter)
-                            (Eccentricity _0)
-                            (RightAscensionOfAscendingNode $ 0.25 *. pi)
-                            (Inclination $ 0.25 *. pi)
-                            (ArgumentOfPeriapsis _0)
-                            (Apoapsis $ 100000 *~ meter)
-                            (Periapsis $ 100000 *~ meter),
+                OrbitSample "Circular 45 deg. incl, raan = 45 deg."
+                            (Orbit Kerbin (v3 (sqrt $ 0.25 *. hSq0) (negate . sqrt $ 0.25 *. hSq0) (sqrt $ 0.5 *. hSq0))
+                                (v3 _0 _0 _0) _0)
+                            (700000 *~ meter)
+                            _0
+                            (45 *~ degree)
+                            (45 *~ degree)
+                            _0
+                            (100000 *~ meter)
+                            (100000 *~ meter),
 
-                orbitSample "Elliptical (e = 0.2) 45� incl, raan = arg. pe = 0"
-                            (Orbit Kerbin (v3' _0 (negate . sqrt $ 0.48 *. hSq0) (sqrt $ 0.48 *. hSq0))
-                                (v3' (0.2 *~ one) _0 _0) (MeanAnomalyAtEpoch _0))
-                            (SemiMajorAxis $ 700000 *~ meter)
-                            (Eccentricity $ 0.2 *~ one)
-                            (RightAscensionOfAscendingNode _0)
-                            (Inclination $ 0.25 *. pi)
-                            (ArgumentOfPeriapsis _0)
-                            (Apoapsis $ 240000 *~ meter)
-                            (Periapsis $ (-40000) *~ meter),
+                OrbitSample "Elliptical (e = 0.2) 45 deg. incl, raan = arg. pe = 0"
+                            (Orbit Kerbin (v3 _0 (negate . sqrt $ 0.48 *. hSq0) (sqrt $ 0.48 *. hSq0))
+                                (v3 (0.2 *~ one) _0 _0) _0)
+                            (700000 *~ meter)
+                            (0.2 *~ one)
+                            _0
+                            (45 *~ degree)
+                            _0
+                            (240000 *~ meter)
+                            ((-40000) *~ meter),
 
-                orbitSample "Elliptical (e = 0.2) 45� incl, raan = 0�, arg. pe = 90�"
-                            (Orbit Kerbin (v3' _0 (negate . sqrt $ 0.48 *. hSq0) (sqrt $ 0.48 *. hSq0))
-                                (v3' _0 (0.2 *. sqrt (0.5 *~ one)) (0.2 *. sqrt (0.5 *~ one))) (MeanAnomalyAtEpoch _0))
-                            (SemiMajorAxis $ 700000 *~ meter)
-                            (Eccentricity $ 0.2 *~ one)
-                            (RightAscensionOfAscendingNode _0)
-                            (Inclination $ 0.25 *. pi)
-                            (ArgumentOfPeriapsis $ 0.5 *. pi)
-                            (Apoapsis $ 240000 *~ meter)
-                            (Periapsis $ (-40000) *~ meter),
+                OrbitSample "Elliptical (e = 0.2) 45 deg. incl, raan = 0, arg. pe = 90 deg."
+                            (Orbit Kerbin (v3 _0 (negate . sqrt $ 0.48 *. hSq0) (sqrt $ 0.48 *. hSq0))
+                                (v3 _0 (0.2 *. sqrt (0.5 *~ one)) (0.2 *. sqrt (0.5 *~ one))) _0)
+                            (700000 *~ meter)
+                            (0.2 *~ one)
+                            _0
+                            (45 *~ degree)
+                            (90 *~ degree)
+                            (240000 *~ meter)
+                            ((-40000) *~ meter),
 
-                orbitSample "Elliptical (e = 0.2) 45� incl, raan = 45�, arg.pe = 0�"
-                            (Orbit Kerbin (v3' (sqrt $ 0.24 *. hSq0) 
-                                (negate . sqrt $ 0.24 *. hSq0) (sqrt $ 0.48 *. hSq0))
-                                (v3' (0.2 *. sqrt (0.5 *~ one)) (0.2 *. sqrt (0.5 *~ one)) _0) (MeanAnomalyAtEpoch _0))
-                            (SemiMajorAxis $ 700000 *~ meter)
-                            (Eccentricity $ 0.2 *~ one)
-                            (RightAscensionOfAscendingNode $ 0.25 *. pi)
-                            (Inclination $ 0.25 *. pi)
-                            (ArgumentOfPeriapsis _0)
-                            (Apoapsis $ 240000 *~ meter)
-                            (Periapsis $ (-40000) *~ meter)
+                OrbitSample "Elliptical (e = 0.2) 45 deg. incl, raan = 45 deg., arg.pe = 0"
+                            (Orbit Kerbin
+                                (v3 (sqrt $ 0.24 *. hSq0) (negate . sqrt $ 0.24 *. hSq0) (sqrt $ 0.48 *. hSq0))
+                                (v3 (0.2 *. sqrt (0.5 *~ one)) (0.2 *. sqrt (0.5 *~ one)) _0) _0)
+                            (700000 *~ meter)
+                            (0.2 *~ one)
+                            (45 *~ degree)
+                            (45 *~ degree)
+                            _0
+                            (240000 *~ meter)
+                            ((-40000) *~ meter)
 
                            ]
-  where hSq0 = 700000 *~ meter * kerbin ^. bodyGravitationalParam . _Wrapping' BodyGravitationalParam
+  where hSq0 = 700000 *~ meter * kerbin ^. bodyGravitationalParam
         kerbin = getBody Kerbin
 
 genSampleOrbits :: Gen OrbitSample

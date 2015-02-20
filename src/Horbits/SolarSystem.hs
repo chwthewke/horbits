@@ -5,7 +5,6 @@ import           Data.List                            (partition, sortBy)
 import           Data.Tree
 import           Horbits.Body
 import           Horbits.Orbit
-import           Horbits.Types
 import           Numeric.Units.Dimensional.TF.Prelude
 
 bodiesList :: [Body]
@@ -41,5 +40,5 @@ insertToSiblings t ts = sortBy closer (t:ts)
 closer :: Tree Body -> Tree Body -> Ordering
 closer (Node b _) (Node b' _) = compare (b ^. periapsis') (b' ^. periapsis')
   where
-    periapsis' = bodyId . pre (bodyOrbit . periapsis) . non (Periapsis _0)
+    periapsis' = bodyId . pre (bodyOrbit . periapsis) . non _0
 

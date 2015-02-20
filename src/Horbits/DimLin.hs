@@ -2,7 +2,7 @@
 
 
 module Horbits.DimLin(Horbits.DimLin.atan2, _x, _y, _z, _xy, _yx, zero, (^+^), (^-^), (^*), (*^), (^/), (*.), cross,
-  dot, quadrance, qd, distance, Horbits.DimLin.mod, norm, signorm, normalize, project, rotate, rotX, rotZ, v2, v3, v3',
+  dot, quadrance, qd, distance, Horbits.DimLin.mod, norm, signorm, normalize, project, rotate, rotX, rotZ, v2, v3,
   V1, V2, V3) where
 
 import           Control.Lens                 hiding ((*~))
@@ -120,9 +120,6 @@ v2 (Dimensional x) (Dimensional y) = Dimensional $ V2 x y
 
 v3 :: Quantity d a -> Quantity d a -> Quantity d a -> Quantity d (V3 a)
 v3 (Dimensional x) (Dimensional y) (Dimensional z) = Dimensional $ V3 x y z
-
-v3' :: (Wrapped m, Unwrapped m ~ Quantity d (V3 a)) => Quantity d a -> Quantity d a -> Quantity d a -> m
-v3' qx qy qz = v3 qx qy qz ^. _Unwrapped'
 
 cross :: (Num a) => Quantity d (V3 a) -> Quantity d' (V3 a) -> Quantity (Mul d d') (V3 a)
 cross = liftDM2 V3.cross
