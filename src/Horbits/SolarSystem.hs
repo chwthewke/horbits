@@ -1,44 +1,48 @@
-module Horbits.SolarSystem (bodiesList, bodiesTree) where
+module Horbits.SolarSystem (bodiesList, bodiesTree, bodyPosition) where
 
 import           Control.Lens
-import           Data.List                            (partition, sortBy)
+import           Data.List                            (sortBy)
 import           Data.Tree
 import           Horbits.Body
 import           Horbits.Orbit
 import           Numeric.Units.Dimensional.TF.Prelude
 
+data BodyPosition = Sun BodyId | Planet Int BodyId BodyId | Moon Int BodyId BodyId
+    deriving (Show, Eq)
+
 bodiesList :: [Body]
 bodiesList = [minBound..] ^.. traverse . fromBodyId
 
-bodiesTree :: Forest Body
-bodiesTree = foldr insert [] bodiesList
-  where insert = curry $ uncurry insertToForest . withChildren
+bodiesTree :: Tree Body
+bodiesTree = fmap (view fromBodyId . toBodyId) bodiesHierarchy
 
-isParentBodyOf :: Body -> Body -> Bool
-isParentBodyOf b b' = b' ^? bodyId . parentBodyId == Just (b ^. bodyId)
+bodyPosition :: BodyId -> BodyPosition
+bodyPosition bId = head . filter ((bId ==) . toBodyId) . flatten $ bodiesHierarchy
 
-withChildren :: (Body, Forest Body) -> (Tree Body, Forest Body)
-withChildren (b, bs) = (Node b $ sortBy closer cs, ds)
+isParentBodyOf :: BodyId -> BodyId -> Bool
+isParentBodyOf b b' = b' ^? parentBodyId == Just b
+
+closer :: BodyId -> BodyId -> Ordering
+closer b b' = compare (b ^. apoapsis') (b' ^. apoapsis')
   where
-    (cs, ds) = partition (isParentBodyOf b . rootLabel) bs
+    apoapsis' = pre (bodyOrbit . apoapsis) . non _0
 
-insertToForest :: Tree Body -> Forest Body -> Forest Body
-insertToForest b f = if ok then fmap snd inserts else b:f
+childPosition :: BodyPosition -> Int -> BodyId -> BodyPosition
+childPosition (Sun b) = flip Planet b
+childPosition (Planet _ _ b) = flip Moon b
+childPosition (Moon _ _ b) = flip Moon b
+
+toBodyId :: BodyPosition -> BodyId
+toBodyId (Sun b) = b
+toBodyId (Planet _ _ b) = b
+toBodyId (Moon _ _ b) = b
+
+bodiesHierarchy :: Tree BodyPosition
+bodiesHierarchy = unfoldTree satellites (Sun Kerbol)
   where
-    inserts = fmap (insertToParent b) f
-    ok = or $ fmap fst inserts
-
-insertToParent :: Tree Body -> Tree Body -> (Bool, Tree Body)
-insertToParent t (Node b ts) = let v = isParentT t  in (v, if v then Node b (insertToSiblings t ts) else Node b ts)
-  where
-    isParentT (Node b' _) = b' ^? bodyId . parentBodyId == Just (b ^. bodyId)
-
-insertToSiblings :: Tree Body -> Forest Body -> Forest Body
-insertToSiblings t ts = sortBy closer (t:ts)
-
-
-closer :: Tree Body -> Tree Body -> Ordering
-closer (Node b _) (Node b' _) = compare (b ^. periapsis') (b' ^. periapsis')
-  where
-    periapsis' = bodyId . pre (bodyOrbit . periapsis) . non _0
+    satellites bp = (bp,
+        zipWith (childPosition bp) [1 ..] .
+        sortBy closer .
+        filter (toBodyId bp `isParentBodyOf`) $
+        [minBound..])
 

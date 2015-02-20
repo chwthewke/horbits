@@ -30,7 +30,7 @@ main = do
 bodyDataPane :: IO VBox
 bodyDataPane = do
     box <- vBoxNew True 5
-    bodyList <- bodyListNew bodiesTree
+    bodyList <- bodyListNew [bodiesTree]
     containerAdd box $ bodyListView bodyList
     bodyDetailsPane <- bodyDetailsPaneNew
     _ <- bodyListOnSelectionChange bodyList (\b -> do
