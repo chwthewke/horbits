@@ -1,19 +1,29 @@
+{-# LANGUAGE Rank2Types      #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 
 module Horbits.Orbit
     (Orbit(Orbit), orbitBodyId, parentBodyId, angularMomentum, eccentricityVector, meanAnomalyAtEpoch, classical,
-    bodyOrbit, orbitBody, orbitMu, eccentricity, semiMajorAxis, apoapsis, periapsis, rightAscensionOfAscendingNode,
-    inclination, argumentOfPeriapsis, orbitalPeriod, specificEnergy)
+    bodyOrbit, orbitBody, orbitMu, eccentricity, semiMajorAxis, semiLatusRectum, apoapsisHeight, apoapsis,
+    periapsisHeight, periapsis, rightAscensionOfAscendingNode, inclination, argumentOfPeriapsis, orbitalPeriod,
+    specificEnergy, bodySolarDay, orbitalVelocity, OrbitalVelocity(OrbitalVelocity), orbitalVelocityMin,
+    orbitalVelocityMax)
  where
 
 import           Control.Applicative
 import           Control.Lens                         hiding ((*~), _1, _2)
+import           Control.Monad                        (mfilter)
 import           Horbits.Body
 import           Horbits.DimLin
 import           Horbits.Types
 import           Numeric.Units.Dimensional.TF.Prelude hiding (atan2, map)
 import           Prelude                              hiding (atan2, map, negate, pi, sqrt, (*), (+), (-), (/), (^))
+
+
+data OrbitalVelocity = OrbitalVelocity { _orbitalVelocityMin :: Velocity Double
+                                       , _orbitalVelocityMax :: Velocity Double
+                                       } deriving (Show, Eq)
+makeLenses ''OrbitalVelocity
 
 
 data Orbit = Orbit { _orbitBodyId        :: BodyId
@@ -177,8 +187,8 @@ _bodyOrbit Eeloo  = Just $ classical Kerbol (90118820000 *~ meter)
 bodyOrbit :: Fold BodyId Orbit
 bodyOrbit = folding _bodyOrbit
 
-parentBodyId :: Fold Body BodyId
-parentBodyId = bodyId . bodyOrbit . orbitBodyId
+parentBodyId :: Fold BodyId BodyId
+parentBodyId = bodyOrbit . orbitBodyId
 
 orbitBody :: Getter Orbit Body
 orbitBody = orbitBodyId . fromBodyId
@@ -186,53 +196,90 @@ orbitBody = orbitBodyId . fromBodyId
 orbitMu :: Getter Orbit (GravitationalParameter Double)
 orbitMu = orbitBody . bodyGravitationalParam
 
-sma0 :: Orbit -> Length Double
-sma0 orbit = quadrance (orbit ^. angularMomentum) / (orbit ^. orbitMu)
+_semiLatusRectum :: Orbit -> Length Double
+_semiLatusRectum = do
+    h <- view angularMomentum
+    mu <- view orbitMu
+    return $ quadrance h / mu
 
-eccentricityM :: Orbit -> Dimensionless Double
-eccentricityM orbit =  norm $ orbit ^. eccentricityVector
+semiLatusRectum :: Getter Orbit (Length Double)
+semiLatusRectum = to _semiLatusRectum
+
 
 _eccentricity :: Orbit -> Dimensionless Double
-_eccentricity orbit = eccentricityM orbit
+_eccentricity = do
+    e <- view eccentricityVector
+    return $ norm e
 
 -- TODO keep sma, except if sign (e - 1) changes, then what?
 _setEccentricity :: Orbit -> Dimensionless Double -> Orbit
-_setEccentricity orbit e = orbit & classicalIso . cOrbitEccentricity .~ e
+_setEccentricity = flip . set $ classicalIso . cOrbitEccentricity
+
 
 eccentricity :: Lens' Orbit (Dimensionless Double)
 eccentricity = lens _eccentricity _setEccentricity
 
 _semiMajorAxis :: Orbit -> Length Double
-_semiMajorAxis orbit = sma0 orbit / (_1 - (eccentricityM orbit ^ pos2))
+_semiMajorAxis = do
+    p <- view semiLatusRectum
+    e <- view eccentricity
+    return $ p / (_1 - e ^ pos2)
 
 _setSemiMajorAxis :: Orbit -> Length Double -> Orbit
-_setSemiMajorAxis orbit sma = orbit & classicalIso . cOrbitSemiMajorAxis .~ sma
+_setSemiMajorAxis = flip . set $ classicalIso . cOrbitSemiMajorAxis
+
 
 semiMajorAxis :: Lens' Orbit (Length Double)
 semiMajorAxis = lens _semiMajorAxis _setSemiMajorAxis
 
+
+_apoapsisHeight :: Orbit -> Length Double
+_apoapsisHeight = do
+    p <- view semiLatusRectum
+    e <- view eccentricity
+    return $ p / (_1 - e)
+
+_setApoapsisHeight :: Orbit -> Length Double -> Orbit
+_setApoapsisHeight orbit ap = orbit & semiMajorAxis %~ (+ dAp)
+                                    & eccentricity .~ e
+  where
+    dAp = ap - _apoapsisHeight orbit
+    e = ap / (orbit ^. semiMajorAxis + dAp) -_1
+
+apoapsisHeight :: Lens' Orbit (Length Double)
+apoapsisHeight = lens _apoapsisHeight _setApoapsisHeight
+
 _apoapsis :: Orbit -> Length Double
-_apoapsis orbit = sma0 orbit / (_1 - eccentricityM orbit) - orbit ^. orbitBody . bodyRadius
+_apoapsis orbit = orbit ^. apoapsisHeight - orbit ^. orbitBody . bodyRadius
 
 _setApoapsis :: Orbit -> Length Double -> Orbit
-_setApoapsis orbit ap = orbit & semiMajorAxis .~ sma
-                              & eccentricity .~ e
-  where
-    sma = orbit ^. semiMajorAxis + (ap - _apoapsis orbit)
-    e = (ap - _periapsis orbit) / (_2 * sma)
+_setApoapsis orbit apo = orbit & apoapsisHeight .~ apo + orbit ^. orbitBody . bodyRadius
 
 apoapsis :: Lens' Orbit (Length Double)
 apoapsis = lens _apoapsis _setApoapsis
 
+_periapsisHeight :: Orbit -> Length Double
+_periapsisHeight = do
+    p <- view semiLatusRectum
+    e <- view eccentricity
+    return $ p / (_1 + e)
+
+_setPeriapsisHeight :: Orbit -> Length Double -> Orbit
+_setPeriapsisHeight orbit pe = orbit & semiMajorAxis %~ (+ dPe)
+                                     & eccentricity .~ e
+  where
+    dPe = pe - _periapsisHeight orbit
+    e = _1 - pe / (orbit ^. semiMajorAxis + dPe)
+
+periapsisHeight :: Lens' Orbit (Length Double)
+periapsisHeight = lens _periapsisHeight _setPeriapsisHeight
+
 _periapsis :: Orbit -> Length Double
-_periapsis orbit = sma0 orbit / (_1 + eccentricityM orbit) - orbit ^. orbitBody . bodyRadius
+_periapsis orbit = orbit ^. periapsisHeight - orbit ^. orbitBody . bodyRadius
 
 _setPeriapsis :: Orbit -> Length Double -> Orbit
-_setPeriapsis orbit pe = orbit & semiMajorAxis .~ sma
-                               & eccentricity .~ e
-  where
-    sma = orbit ^. semiMajorAxis + (pe - _periapsis orbit)
-    e = (_apoapsis orbit - pe) / (_2 * sma)
+_setPeriapsis orbit pe = orbit & periapsisHeight .~ pe + orbit ^. orbitBody . bodyRadius
+
 
 periapsis :: Lens' Orbit (Length Double)
 periapsis = lens _periapsis _setPeriapsis
@@ -287,3 +334,26 @@ _specificEnergy orbit = negate $ orbit ^. orbitMu / (_2 * sma)
 
 specificEnergy :: Getter Orbit (SpecificEnergy Double)
 specificEnergy = to _specificEnergy
+
+orbitalVelocity :: Getter Orbit OrbitalVelocity
+orbitalVelocity = to $ do
+    h <- view angularMomentum
+    mu <- view orbitMu
+    e <- view eccentricity
+    let v0 = mu / norm h
+    return $ OrbitalVelocity (v0 * (_1 - e)) (v0 * (_1 + e))
+
+kerbolOrbit :: Maybe Orbit -> Maybe Orbit
+kerbolOrbit = mfilter ((== Kerbol) <$> view orbitBodyId)
+
+_bodySolarDay :: Body -> Maybe Orbit -> Maybe (Time Double)
+_bodySolarDay b = fmap solarDay
+  where
+    siderealDay = b ^. bodySiderealRotationPeriod
+    siderealYear o = o ^. orbitalPeriod
+    solarDay o = siderealDay / (_1 - siderealDay / siderealYear o)
+
+bodySolarDay :: Fold Body (Time Double)
+bodySolarDay = folding $ do
+    orbit <- views (bodyId . pre bodyOrbit) kerbolOrbit
+    flip _bodySolarDay orbit

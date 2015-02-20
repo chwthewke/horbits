@@ -15,7 +15,7 @@ bodiesTree = foldr insert [] bodiesList
   where insert = curry $ uncurry insertToForest . withChildren
 
 isParentBodyOf :: Body -> Body -> Bool
-isParentBodyOf b b' = b' ^? parentBodyId == Just (b ^. bodyId)
+isParentBodyOf b b' = b' ^? bodyId . parentBodyId == Just (b ^. bodyId)
 
 withChildren :: (Body, Forest Body) -> (Tree Body, Forest Body)
 withChildren (b, bs) = (Node b $ sortBy closer cs, ds)
@@ -31,7 +31,7 @@ insertToForest b f = if ok then fmap snd inserts else b:f
 insertToParent :: Tree Body -> Tree Body -> (Bool, Tree Body)
 insertToParent t (Node b ts) = let v = isParentT t  in (v, if v then Node b (insertToSiblings t ts) else Node b ts)
   where
-    isParentT (Node b' _) = b' ^? parentBodyId == Just (b ^. bodyId)
+    isParentT (Node b' _) = b' ^? bodyId . parentBodyId == Just (b ^. bodyId)
 
 insertToSiblings :: Tree Body -> Forest Body -> Forest Body
 insertToSiblings t ts = sortBy closer (t:ts)
