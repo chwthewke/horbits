@@ -5,3 +5,5 @@ cabal.sandbox.config
 dist/
 .settings/
 .HTF/
+horbits.iml
+.idea/
