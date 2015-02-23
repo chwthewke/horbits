@@ -9,12 +9,12 @@ executable horbits
   main-is:         Main.hs
   build-depends:   
                    base >= 4,
-                   transformers >= 0.3 && < 0.4,
-                   lens >= 4.6.0.1 && < 4.7,
-                   containers >= 0.5.5.1 && < 0.6,
-                   dimensional-tf >= 0.3.0.1 && < 0.4,
-                   linear >= 1.15.4 && < 1.16,
+                   transformers == 0.3.*,
+                   lens >= 4.7,
+                   containers >= 0.5.6,
+                   linear >= 1.16,
                    numtype-tf >= 0.1.2 && < 0.2,
+                   dimensional-tf >= 0.3.0.1 && < 0.4,
                    OpenGL >= 2.10.0.1 && < 2.11,
                    gtk >= 0.12.5.7 && < 0.13,
                    gtkglext >= 0.12.5.0 && < 0.13
