@@ -4,6 +4,7 @@ module Main where
 
 import           Test.Framework
 
+import  {-@ HTF_TESTS @-} Horbits.KerbalDateTimeTest
 import  {-@ HTF_TESTS @-} Horbits.OrbitClassicalTest
 import  {-@ HTF_TESTS @-} Horbits.OrbitGen
 

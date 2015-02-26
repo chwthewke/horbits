@@ -1,6 +1,5 @@
 {-# LANGUAGE TypeFamilies #-}
 
-
 module Horbits.DimLin(Horbits.DimLin.atan2, _x, _y, _z, _xy, _yx, zero, (^+^), (^-^), (^*), (*^), (^/), (*.), cross,
   dot, quadrance, qd, distance, Horbits.DimLin.mod, norm, signorm, normalize, project, rotate, rotX, rotZ, v2, v3,
   V1, V2, V3) where
@@ -30,8 +29,6 @@ infixl 7 *.
 
 (*.) :: (Num a, d ~ Mul DOne d) => a -> Quantity d a -> Quantity d a
 a *. q = (a *~ one) * q
-
--- Lifts
 
 -- lenses
 
