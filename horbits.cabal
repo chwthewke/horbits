@@ -22,14 +22,15 @@ executable horbits
                    gtkglext >= 0.12.5.0
   ghc-options:     -Wall
   other-modules:   
-                   Horbits.Body,
                    Horbits.DimLin,
-                   Horbits.KerbalDateTime,
                    Horbits.Orbit,
-                   Horbits.SolarSystem,
                    Horbits.Types,
+                   Horbits.Body,
+                   Horbits.UI.BodyList,
+                   Horbits.SolarSystem,
                    Horbits.UI.BodyDetails,
-                   Horbits.UI.BodyList
+                   Horbits.UI.ShowDim
+
 
 test-suite HorbitsTests
   type:            exitcode-stdio-1.0
@@ -50,6 +51,7 @@ test-suite HorbitsTests
                   Horbits.Types,
                   Horbits.UI.BodyDetails,
                   Horbits.UI.BodyList,
+                  Horbits.UI.ShowDim,
                   Horbits.KerbalDateTimeTest,
                   Horbits.OrbitClassicalTest,
                   Horbits.OrbitEq,
