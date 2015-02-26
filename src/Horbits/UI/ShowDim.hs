@@ -7,8 +7,8 @@
 
 
 module Horbits.UI.ShowDim
-    (ShowDim, showUnit, showQuantityWith, showQuantity, showQuantitySci,
-    showNth, showBodyPosition, showDegreeAngle, showRadianAngle,
+    (ShowDim, showUnit, showQuantityWith, showQuantity, showQuantityShort, showQuantitySci, showQuantitySciShort,
+    showNth, showBodyPosition, showDegreeAngle, showRadianAngle, showVelocity, showGravity,
     showKerbalTime, showOrbitalDistance, showPlanetaryDistance, showOrbitalVelocity)
   where
 
@@ -19,7 +19,7 @@ import           Horbits.Orbit
 import           Horbits.SolarSystem
 import           Numeric.NumType.TF                   (NumType, toNum)
 import           Numeric.Units.Dimensional.TF         (Dimensional (Dimensional))
-import           Numeric.Units.Dimensional.TF.Prelude hiding (abs, (+))
+import           Numeric.Units.Dimensional.TF.Prelude hiding (abs, (+), _2)
 import           Prelude                              hiding ((/))
 import           Text.Printf.TH
 
@@ -32,11 +32,27 @@ showQuantityWith :: ShowDim d => (a -> String -> String) -> Quantity d a -> Stri
 showQuantityWith fmt = uncurry fmt . showUnit
 
 showQuantity :: (RealFloat a, ShowDim d) => Quantity d a -> String
-showQuantity = showQuantityWith [s|%f %s|]
+showQuantity = showQuantityWith [s|%f%s|]
 
--- TODO "e(\d+)" ->  "x10<sup>\1</sup>"
+showQuantityShort :: (RealFloat a, ShowDim d) => Quantity d a -> String
+showQuantityShort = showQuantityWith [s|%.2f%s|]
+
+-- TODO Regex, Attoparsec, whatever :/
+translateExponent :: String -> String
+translateExponent [] = []
+translateExponent ('e':e) = "\xD7\&10<sup>" ++ translateExponentEnd e
+translateExponent (c:cs) = c:translateExponent cs
+
+translateExponentEnd :: String -> String
+translateExponentEnd [] = "</sup>"
+translateExponentEnd cs@(' ':_) = "</sup>" ++ cs
+translateExponentEnd (c:cs) = c:translateExponentEnd cs
+
 showQuantitySci :: (RealFloat a, ShowDim d) => Quantity d a -> String
-showQuantitySci = showQuantityWith [s|%e %s|]
+showQuantitySci = translateExponent . showQuantityWith [s|%e%s|]
+
+showQuantitySciShort :: (RealFloat a, ShowDim d) => Quantity d a -> String
+showQuantitySciShort = translateExponent . showQuantityWith [s|%.3e%s|]
 
 -- Shows for our quantities and other data types
 
@@ -55,30 +71,35 @@ showDegreeAngle :: Dimensionless Double -> String
 showDegreeAngle = [s|%.1f\xB0|] . fst . showUnit . (/ (1 *~ degree))
 
 showRadianAngle :: Dimensionless Double -> String
-showRadianAngle = [s|%.1f rad|] . fst . showUnit
+showRadianAngle = [s|%.2f rad|] . fst . showUnit
 
--- TODO hide leading zeroes
+showVelocity :: Velocity Double -> String
+showVelocity = showQuantityWith [s|%.1f%s|]
+
+showGravity :: Acceleration Double -> String
+showGravity g = showQuantityShort g ++
+    " (" ++ showQuantityShort (g / Kerbin ^. fromBodyId . bodySurfaceGravity) ++ " g)"
+
 showKerbalTime :: Time Double -> String
 showKerbalTime t =
-    [s|%d y %d d %d h %d m %.2f s (%f %s)|]
-        (k ^. years)
-        (k ^. days)
-        (k ^. hours)
-        (k ^. minutes)
+    [s|%s %.2f s (%.2f %s)|]
+        initText
         (fromIntegral (k ^. seconds) + k ^. secondsFraction)
         q
         u
   where (q, u) = showUnit t
         k = t ^. from duration
+        optionalParts = dropWhile ((== 0) . fst) $ zip (k ^. timeComponents . _2 . reversed) ["y", "d", "h", "m"]
+        initText = unwords . fmap (uncurry [s|%d %s|]) $ optionalParts
 
 showOrbitalDistance :: Length Double -> String
-showOrbitalDistance = showQuantityWith [s|%.0f %s|]
+showOrbitalDistance = showQuantityWith [s|%.0f%s|]
 
 showPlanetaryDistance :: Length Double -> String
-showPlanetaryDistance = showQuantityWith [s|%.0f %s|]
+showPlanetaryDistance = showQuantityWith [s|%.0f%s|]
 
 showOrbitalVelocity :: OrbitalVelocity -> String
-showOrbitalVelocity (OrbitalVelocity minV maxV) = [s|%f-%f %s|] q q' u
+showOrbitalVelocity (OrbitalVelocity minV maxV) = [s|%.1f-%.1f%s|] q q' u
   where
     (q, u) = showUnit minV
     (q', _) = showUnit maxV
@@ -96,7 +117,7 @@ instance ( NumType l
          , NumType n
          , NumType j ) =>
              ShowDim (Dim l m t i th n j) where
-    showDim = renderDim
+    showDim q = if null (renderDim q) then "" else " " ++ renderDim q
 
 instance forall d a. ShowDim d => ShowDim (Quantity d a) where
     showDim (Dimensional _) = showDim (undefined :: d)

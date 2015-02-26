@@ -118,7 +118,7 @@ orbitalSection = DetailsSection (Just "Orbital Characteristics") (bodyId . bodyO
     , detailOf inclination & titled "Inclination" <&> showDegreeAngle
     , detailOf argumentOfPeriapsis & titled "Argument of periapsis" <&> showDegreeAngle
     , detailOf rightAscensionOfAscendingNode & titled "Longitude of asc. node" <&> showDegreeAngle
-    , detailOf meanAnomalyAtEpoch & titled "Longitude of asc. node" <&> showRadianAngle
+    , detailOf meanAnomalyAtEpoch & titled "Mean anomaly at epoch" <&> showRadianAngle
     , detailOf orbitalPeriod & titled "Orbital period" <&> showKerbalTime
     , detailOf orbitalVelocity & titled "Orbital Velocity" <&> showOrbitalVelocity
     ]
@@ -126,14 +126,14 @@ orbitalSection = DetailsSection (Just "Orbital Characteristics") (bodyId . bodyO
 physicalSection :: DetailsSection
 physicalSection = DetailsSection (Just "Physical Characteristics") (to id)
     [ detailOf bodyRadius & titled "Equatorial radius" <&> showPlanetaryDistance
-    , detailOf bodySurfaceArea & titled "Surface area" <&> showQuantitySci
-    , detailOf bodyMass & titled "Mass" <&> showQuantitySci
+    , detailOf bodySurfaceArea & titled "Surface area" <&> showQuantitySciShort
+    , detailOf bodyMass & titled "Mass" <&> showQuantitySciShort
     , detailOf bodyGravitationalParam & titled "Gravitational parameter" <&> showQuantitySci
-    , detailOf bodyDensity & titled "Density" <&> showQuantity
-    , detailOf bodySurfaceGravity & titled "Surface gravity" <&> showQuantity
-    , detailOf bodyEscapeVelocity & titled "Escape velocity" <&> showQuantity
+    , detailOf bodyDensity & titled "Density" <&> showQuantityShort
+    , detailOf bodySurfaceGravity & titled "Surface gravity" <&> showGravity
+    , detailOf bodyEscapeVelocity & titled "Escape velocity" <&> showVelocity
     , detailOf bodySiderealRotationPeriod & titled "Sidereal rotation period" <&> showKerbalTime
-    , detailOf bodySiderealRotationVelocity & titled "Sidereal rotation velocity" <&> showQuantity
+    , detailOf bodySiderealRotationVelocity & titled "Sidereal rotation velocity" <&> showVelocity
     , detailOf bodySolarDay & titled "Solar Day" <&> showKerbalTime
     , detailOf bodySynchronousOrbitAltitude & titled "Synchronous orbit" <&> showOrbitalDistance
     , detailOf bodySphereOfInfluence & titled "Sphere of influence" <&> showOrbitalDistance

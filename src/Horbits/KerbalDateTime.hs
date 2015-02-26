@@ -6,7 +6,7 @@
 
 module Horbits.KerbalDateTime
     (KerbalTimeComponents, KerbalTime'(), KerbalTime, KerbalInstant'(), KerbalInstant,
-     secondsFraction, seconds, minutes, hours, days, years, duration, epoch)
+     timeComponents, secondsFraction, seconds, minutes, hours, days, years, duration, epoch)
   where
 
 import           Control.Applicative
