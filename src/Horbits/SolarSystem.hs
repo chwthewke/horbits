@@ -1,4 +1,4 @@
-module Horbits.SolarSystem (bodiesList, bodiesTree, bodyPosition) where
+module Horbits.SolarSystem (BodyPosition(..), bodiesList, bodiesTree, bodyPosition) where
 
 import           Control.Lens
 import           Data.List                            (sortBy)
@@ -7,7 +7,7 @@ import           Horbits.Body
 import           Horbits.Orbit
 import           Numeric.Units.Dimensional.TF.Prelude
 
-data BodyPosition = Sun BodyId | Planet Int BodyId BodyId | Moon Int BodyId BodyId
+data BodyPosition = Sun BodyId | Planet Integer BodyId BodyId | Moon Integer BodyId BodyId
     deriving (Show, Eq)
 
 bodiesList :: [Body]
@@ -27,7 +27,7 @@ closer b b' = compare (b ^. apoapsis') (b' ^. apoapsis')
   where
     apoapsis' = pre (bodyOrbit . apoapsis) . non _0
 
-childPosition :: BodyPosition -> Int -> BodyId -> BodyPosition
+childPosition :: BodyPosition -> Integer -> BodyId -> BodyPosition
 childPosition (Sun b) = flip Planet b
 childPosition (Planet _ _ b) = flip Moon b
 childPosition (Moon _ _ b) = flip Moon b

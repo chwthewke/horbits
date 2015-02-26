@@ -54,7 +54,7 @@ makeLenses ''Body
 
 -- Derived properties
 bodySphereOfInfluence :: Fold Body (Length Double)
-bodySphereOfInfluence = bodySoI . _Just
+bodySphereOfInfluence = bodySoI . traverse
 
 bodyAtmosphereHeight :: Getter Body (Maybe (Length Double))
 bodyAtmosphereHeight = pre (bodyAtmosphere . traverse . atmosphereHeight)

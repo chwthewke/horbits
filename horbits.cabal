@@ -15,6 +15,7 @@ executable horbits
                    linear >= 1.16,
                    numtype-tf >= 0.1.2 && < 0.2,
                    dimensional-tf >= 0.3.0.1 && < 0.4,
+                   th-printf >= 0.3.0.0 && < 0.4,
                    OpenGL >= 2.10.0.1 && < 2.11,
                    gtk >= 0.12.5.7 && < 0.13,
                    gtkglext >= 0.12.5.0 && < 0.13
@@ -28,19 +29,6 @@ executable horbits
                    Horbits.SolarSystem,
                    Horbits.UI.BodyDetails
 
-library
-  build-depends:   base >= 4
-  hs-source-dirs:  src
-  ghc-options:     -Wall
-  exposed-modules: 
-                   Horbits.Body,
-                   Horbits.DimLin,
-                   Horbits.Orbit,
-                   Horbits.Types
-  other-modules:   
-                   Horbits.UI.BodyList,
-                   Horbits.SolarSystem,
-                   Horbits.UI.BodyDetails
 
 test-suite HorbitsTests
   type:            exitcode-stdio-1.0

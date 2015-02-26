@@ -30,3 +30,5 @@ matcherProperty m x = case runMatch m x of MatchSuccess -> property True
                                            MatchFailure f -> counterexample f $ property False
 
 
+shouldBe :: a -> Matcher a -> Property
+shouldBe = flip matcherProperty
