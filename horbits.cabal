@@ -29,7 +29,10 @@ executable horbits
                    Horbits.UI.BodyList,
                    Horbits.SolarSystem,
                    Horbits.UI.BodyDetails,
-                   Horbits.UI.ShowDim
+                   Horbits.UI.ShowDim,
+                   Horbits.UI.GL.GLOrbit,
+                   Horbits.UI.GL.GLIso,
+                   Horbits.Orbit.Geometry
 
 
 test-suite HorbitsTests
@@ -57,7 +60,10 @@ test-suite HorbitsTests
                   Horbits.OrbitEq,
                   Horbits.OrbitGen,
                   Horbits.OrbitSample,
-                  Horbits.Rematch
+                  Horbits.Rematch,
+                  Horbits.UI.GL.GLOrbit,
+                  Horbits.UI.GL.GLIso,
+                  Horbits.Orbit.Geometry
   hs-source-dirs:  
                   src,
                   testsuite

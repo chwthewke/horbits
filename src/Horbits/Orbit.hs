@@ -1,6 +1,7 @@
 {-# LANGUAGE Rank2Types      #-}
 {-# LANGUAGE TemplateHaskell #-}
 
+-- TODO split, move into Horbits.Orbit, re-export
 
 module Horbits.Orbit
     (Orbit(Orbit), orbitBodyId, parentBodyId, angularMomentum, eccentricityVector, meanAnomalyAtEpoch, classical,

@@ -1,14 +1,14 @@
 {-# LANGUAGE TypeFamilies #-}
 
-module Horbits.DimLin(Horbits.DimLin.atan2, _x, _y, _z, _xy, _yx, zero, (^+^), (^-^), (^*), (*^), (^/), (*.), cross,
-  dot, quadrance, qd, distance, Horbits.DimLin.mod, norm, signorm, normalize, project, rotate, rotX, rotZ, v2, v3,
-  V1, V2, V3) where
+module Horbits.DimLin(Horbits.DimLin.atan2, _x, _y, _z, _xy, _yx, zero, (^+^), (^-^), (^*), (*^), (^/), (*.),
+    cross,  dot, dimNearZero, quadrance, qd, distance, Horbits.DimLin.mod, norm, signorm, normalize, project, rotate,
+    rotX, rotZ,  v2, v3, V1, V2, V3) where
 
 import           Control.Lens                 hiding ((*~))
 import qualified Data.Fixed                   as DF
 import           Horbits.Types                ()
-import           Linear                       (Epsilon)
 import           Linear.Conjugate             (Conjugate)
+import qualified Linear.Epsilon               as E
 import qualified Linear.Metric                as N
 import qualified Linear.Quaternion            as Q
 import           Linear.V1                    (R1, V1)
@@ -21,6 +21,7 @@ import qualified Linear.Vector                as V
 import           Numeric.NumType.TF           (Pos2, pos2)
 import           Numeric.Units.Dimensional.TF (DOne, Dimensional (..), Dimensionless, Div, Mul, Pow, Quantity, one, (*),
                                                (*~))
+import qualified Numeric.Units.Dimensional.TF as D
 import           Prelude                      hiding ((*))
 
 infixl 6 ^+^, ^-^
@@ -121,6 +122,12 @@ v3 (Dimensional x) (Dimensional y) (Dimensional z) = Dimensional $ V3 x y z
 cross :: (Num a) => Quantity d (V3 a) -> Quantity d' (V3 a) -> Quantity (Mul d d') (V3 a)
 cross = liftDM2 V3.cross
 
+-- Epsilon
+
+dimNearZero :: (Fractional a, E.Epsilon a) => Quantity d a -> Quantity d a -> Bool
+dimNearZero u q = dimensionlessNearZero $ q D./ u
+  where dimensionlessNearZero (Dimensional x) = E.nearZero x
+
 -- Metric
 
 dot :: (N.Metric f, Num a) => Quantity d (f a) -> Quantity d' (f a) -> Quantity (Mul d d') a
@@ -138,11 +145,11 @@ distance = liftDA2 N.distance
 norm :: (N.Metric f, Floating a) => Quantity d (f a) -> Quantity d a
 norm = liftDLin N.norm
 
-signorm :: (N.Metric f, Floating a) => Quantity d (f a) -> Quantity d (f a)
-signorm = liftDLin N.signorm
+signorm :: (N.Metric f, Floating a) => Quantity d (f a) -> Dimensionless (f a)
+signorm = liftD N.signorm
 
-normalize :: (N.Metric f, Floating a, Epsilon a) => Dimensionless (f a) -> Dimensionless (f a)
-normalize = fmap N.normalize
+normalize :: (N.Metric f, Floating a, E.Epsilon a) => Quantity d (f a) -> Dimensionless (f a)
+normalize = liftD N.normalize
 
 project :: (N.Metric f, Fractional a) => Quantity d (f a) -> Quantity d (f a) -> Quantity d (f a)
 project = liftDA2 N.project
