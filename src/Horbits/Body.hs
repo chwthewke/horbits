@@ -4,7 +4,7 @@ module Horbits.Body (Atmosphere, Body, BodyId(..), gravitationalConstant, atmosp
     atmosphericPressure, bodyId, bodyName, bodyGravitationalParam, bodyRadius, bodySiderealRotationPeriod,
     bodySphereOfInfluence, bodyAtmosphere, bodyAtmosphereHeight, bodyAtmosphereScaleHeight, bodyAtmosphericPressure,
     bodySurfaceArea, bodyMass, bodyDensity, bodySurfaceGravity, bodyEscapeVelocity, bodySiderealRotationVelocity,
-    bodySynchronousOrbitAltitude, getBody, fromBodyId)
+    bodySynchronousOrbitAltitude, bodyUiColor, getBody, fromBodyId)
   where
 
 import           Control.Lens                         hiding ((*~), _2, _3, _4)
@@ -51,6 +51,13 @@ data Body = Body { _bodyId                     :: BodyId
                  } deriving (Show, Eq)
 
 makeLenses ''Body
+
+data RgbColor = RgbColor { _rgbColorR :: Int
+                         , _rgbColorG :: Int
+                         , _rgbColorB :: Int
+                         }
+
+makeLenses ''RgbColor
 
 -- Derived properties
 bodySphereOfInfluence :: Fold Body (Length Double)
@@ -101,6 +108,9 @@ bodySynchronousOrbitAltitude = to $ do
     mu <- view bodyGravitationalParam
     radius <- view bodyRadius
     return $ cbrt (mu * (period / (_2 * pi)) ^ pos2) - radius
+
+bodyUiColor :: Fold Body RgbColor
+bodyUiColor = bodyId . to getColor . traverse
 
 -- Data
 getBody :: BodyId -> Body
@@ -168,3 +178,41 @@ getOrbitalAttrs Tylo = mkOrbitalAttrs 2.8252800e12 1.0856518e7
 getOrbitalAttrs Bop = mkOrbitalAttrs 2.4868349e9 1.2210609e6
 getOrbitalAttrs Pol = mkOrbitalAttrs 7.2170208e8 1.0421389e6
 getOrbitalAttrs Eeloo = mkOrbitalAttrs 7.4410815e10 1.1908294e8
+
+getColor :: BodyId -> Maybe RgbColor
+getColor Kerbol = Nothing
+getColor Kerbin = Just $ RgbColor 0x7d 0xb7 0xb0
+getColor Mun    = Just $ RgbColor 0x85 0x8a 0x9a
+getColor Minmus = Just $ RgbColor 0x48 0x3a 0x50
+getColor Moho   = Just $ RgbColor 0x78 0x5c 0x45
+getColor Eve    = Just $ RgbColor 0x6d 0x20 0xe5
+getColor Duna   = Just $ RgbColor 0xa4 0x3f 0x28
+getColor Ike    = Just $ RgbColor 0x85 0x8a 0x9a
+getColor Jool   = Just $ RgbColor 0x54 0x85 0x13
+getColor Laythe = Just $ RgbColor 0x22 0x2b 0x4e
+getColor Vall   = Just $ RgbColor 0x6f 0x9c 0xb5
+getColor Bop    = Just $ RgbColor 0x5d 0x50 0x3f
+getColor Tylo   = Just $ RgbColor 0xd4 0xab 0xab
+getColor Gilly  = Just $ RgbColor 0x52 0x40 0x37
+getColor Pol    = Just $ RgbColor 0x6f 0x72 0x56
+getColor Dres   = Just $ RgbColor 0x2d 0x23 0x19
+getColor Eeloo  = Just $ RgbColor 0x34 0x35 0x35
+
+--[PLANET_COLORS] Sun None
+--[PLANET_COLORS] Kerbin 7db7b0
+--[PLANET_COLORS] Mun 858a9a
+--[PLANET_COLORS] Minmus 483a50
+--[PLANET_COLORS] Moho 785c45
+--[PLANET_COLORS] Eve 6d20e5
+--[PLANET_COLORS] Duna a43f28
+--[PLANET_COLORS] Ike 858a9a
+--[PLANET_COLORS] Jool 548513
+--[PLANET_COLORS] Laythe 222b4e
+--[PLANET_COLORS] Vall 6f9cb5
+--[PLANET_COLORS] Bop 5d503f
+--[PLANET_COLORS] Tylo d4abab
+--[PLANET_COLORS] Gilly 524037
+--[PLANET_COLORS] Pol 6f7256
+--[PLANET_COLORS] Dres 2d2319
+--[PLANET_COLORS] Eeloo 343535
+
