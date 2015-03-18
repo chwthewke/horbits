@@ -7,7 +7,7 @@ import           Horbits.Body
 import           Horbits.Orbit
 import           Numeric.Units.Dimensional.TF.Prelude
 
-data BodyPosition = Sun BodyId | Planet Integer BodyId BodyId | Moon Integer BodyId BodyId
+data BodyPosition = Star BodyId | Planet Integer BodyId BodyId | Moon Integer BodyId BodyId
     deriving (Show, Eq)
 
 bodiesList :: [Body]
@@ -28,17 +28,17 @@ closer b b' = compare (b ^. apoapsis') (b' ^. apoapsis')
     apoapsis' = pre (bodyOrbit . apoapsis) . non _0
 
 childPosition :: BodyPosition -> Integer -> BodyId -> BodyPosition
-childPosition (Sun b) = flip Planet b
+childPosition (Star b) = flip Planet b
 childPosition (Planet _ _ b) = flip Moon b
 childPosition (Moon _ _ b) = flip Moon b
 
 toBodyId :: BodyPosition -> BodyId
-toBodyId (Sun b) = b
+toBodyId (Star b) = b
 toBodyId (Planet _ _ b) = b
 toBodyId (Moon _ _ b) = b
 
 bodiesHierarchy :: Tree BodyPosition
-bodiesHierarchy = unfoldTree satellites (Sun Kerbol)
+bodiesHierarchy = unfoldTree satellites (Star Sun)
   where
     satellites bp = (bp,
         zipWith (childPosition bp) [1 ..] .

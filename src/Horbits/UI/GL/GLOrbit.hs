@@ -9,7 +9,7 @@ import           Horbits.UI.GL.GLIso
 import           Linear.V3
 import           Linear.Vector
 
-drawEllipse' :: Rgb8Color -> GLfloat -> GLfloat -> IO ()
+drawEllipse' :: RgbaFColor -> GLfloat -> GLfloat -> IO ()
 drawEllipse' c = drawEllipse (c ^. glColor)
 
 drawEllipse :: (GL.Color c) =>  c -> GLfloat -> GLfloat -> IO ()
@@ -30,7 +30,7 @@ drawEllipse c a b = do
     controls = zipWith mkControl points weights
 
 -- | drawOrbit color center semiMajor semiMinor
-drawEllipse3d :: Rgb8Color -> V3 Double -> V3 Double -> V3 Double -> IO ()
+drawEllipse3d :: RgbaFColor -> V3 Double -> V3 Double -> V3 Double -> IO ()
 drawEllipse3d c o a b = do
     color $ c ^. glColor
     withNURBSObj () $ \nurbsObj -> do

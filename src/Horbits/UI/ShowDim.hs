@@ -57,7 +57,7 @@ showQuantitySciShort = translateExponent . showQuantityWith [s|%.3e%s|]
 -- Shows for our quantities and other data types
 
 showBodyPosition :: BodyPosition -> String
-showBodyPosition (Sun _) = "Sun"
+showBodyPosition (Star _) = "Star"
 showBodyPosition (Planet i p _) = showNth i ++ " planet of " ++ p ^. fromBodyId . bodyName
 showBodyPosition (Moon i p _) = showNth i ++ " moon of " ++ p ^. fromBodyId . bodyName
 
