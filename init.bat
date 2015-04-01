@@ -1,0 +1,1 @@
+cabal install --dependencies-only --enable-test --constraint="gtk -fmode-binary" --force-reinstall
