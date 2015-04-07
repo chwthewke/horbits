@@ -1,8 +1,8 @@
 {-# LANGUAGE TypeFamilies #-}
 
 module Horbits.DimLin(Horbits.DimLin.atan2, _x, _y, _z, _xy, _yx, zero, (^+^), (^-^), (^*), (*^), (^/), (*.),
-    cross,  dot, dimNearZero, quadrance, qd, distance, Horbits.DimLin.mod, norm, signorm, normalize, project, rotate,
-    rotX, rotZ,  v2, v3, V1, V2, V3) where
+    cross, dot, dimNearZero, quadrance, qd, distance, Horbits.DimLin.mod, norm, signorm, normalize, project,
+    rotate, rotX, rotZ, v2, v3, V1, V2, V3) where
 
 import           Control.Lens                 hiding ((*~))
 import qualified Data.Fixed                   as DF
@@ -33,24 +33,24 @@ a *. q = (a *~ one) * q
 
 -- lenses
 
-isoDim :: Iso' a (Dimensional v d a)
-isoDim = iso Dimensional undim
+dim :: Iso' a (Dimensional v d a)
+dim = iso Dimensional undim
   where undim (Dimensional a) = a
 
 _x :: (R1 f) => Lens' (Quantity d (f a)) (Quantity d a)
-_x = from isoDim . V1._x . isoDim
+_x = from dim . V1._x . dim
 
 _y :: (R2 f) => Lens' (Quantity d (f a)) (Quantity d a)
-_y = from isoDim . V2._y . isoDim
+_y = from dim . V2._y . dim
 
 _xy :: (R2 f) => Lens' (Quantity d (f a)) (Quantity d (V2 a))
-_xy = from isoDim . V2._xy . isoDim
+_xy = from dim . V2._xy . dim
 
 _yx :: (R2 f) => Lens' (Quantity d (f a)) (Quantity d (V2 a))
-_yx = from isoDim . V2._yx . isoDim
+_yx = from dim . V2._yx . dim
 
 _z :: (R3 f) => Lens' (Quantity d (f a)) (Quantity d a)
-_z = from isoDim . V3._z . isoDim
+_z = from dim . V3._z . dim
 
 -- Applicative-like lifts
 
@@ -162,9 +162,11 @@ rotate (Dimensional q) = liftDLin $ Q.rotate q
 
 rotX :: Dimensionless Double -> Dimensionless (Q.Quaternion Double)
 rotX = fmap rotX'
-  where rotX' theta = Q.Quaternion (cos $ theta / 2) (V3 (sin $ theta / 2) 0 0)
+--  where rotX' theta = Q.Quaternion (cos $ theta / 2) (V3 (sin $ theta / 2) 0 0)
+  where rotX' = Q.axisAngle (V3 1 0 0)
+
 
 rotZ :: Dimensionless Double -> Dimensionless (Q.Quaternion Double)
 rotZ = fmap rotZ'
-  where rotZ' theta = Q.Quaternion (cos $ theta / 2) (V3 0 0 (sin $ theta / 2))
-
+--  where rotZ' theta = Q.Quaternion (cos $ theta / 2) (V3 0 0 (sin $ theta / 2))
+  where rotZ' = Q.axisAngle (V3 0 0 1)
