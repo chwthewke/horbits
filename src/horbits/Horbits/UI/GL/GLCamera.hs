@@ -16,6 +16,6 @@ bindCameraToGL cam = do
 
 setGLCamera :: (Real a) => M44 a -> IO ()
 setGLCamera mat = do
-    -- TODO test RowMajor/no transposing on real hardware
+    -- TODO test RowMajor/no transposing now that we have recent OpenGLRaw?
     m <- newMatrix ColumnMajor . fmap realToFrac $ transpose mat ^.. traverse.traverse :: IO (GLmatrix GLfloat)
     matrix (Just Projection) $= m

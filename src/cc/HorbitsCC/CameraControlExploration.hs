@@ -1,18 +1,15 @@
 module HorbitsCC.CameraControlExploration(basesAndCameraControls, ZoomModel(..), linearZoom, geometricZoom) where
 
-import           Control.Applicative
 import           Control.Lens
 import           Control.Monad             hiding (forM_)
-import           Control.Monad.IO.Class
-import           Control.Monad.Trans.State
 import           Data.Binding.Simple
 import           Data.Foldable
 import           Data.IORef
-import           Data.List.NonEmpty        (NonEmpty ((:|)))
-import qualified Data.List.NonEmpty        as NE
 import           Graphics.Rendering.OpenGL
 import           Graphics.UI.Gtk           hiding (set)
 import           Horbits.UI.Camera
+import           Horbits.UI.Camera.Control
+import           Horbits.UI.Camera.Zoom
 import           Horbits.UI.GL.GLCamera
 import           Horbits.UI.GL.GLSetup
 import           Linear
@@ -43,7 +40,6 @@ drawBases = do
     drawBasis (Vertex4 0.0 0.0 2.0 0.7 :: Vertex4 GLfloat)
     drawBasis (Vertex4 0.0 0.0 (-2.0) 0.7 :: Vertex4 GLfloat)
 
--- TODO These may need to go, later
 degrees :: (Floating a) => Iso' a a
 degrees = iso (* (180 / pi)) (* (pi / 180))
 
@@ -52,11 +48,10 @@ orthoCameraColatitudeDeg = orthoCameraColatitude . degrees
 
 orthoCameraLongitudeDeg :: Floating a => Lens' (OrthoCamera a) a
 orthoCameraLongitudeDeg = orthoCameraLongitude . degrees
---
 
 basesAndCameraControls :: Window -> IO ()
 basesAndCameraControls window = do
-    cam <- orthoCameraNew 1 600 600
+    cam <- newVar $ orthoCamera (linearZoom 1 (1, 20)) 600 600 :: IO (Source IORef (OrthoCamera Double))
     box <- hBoxNew False 5
     ctrlBox <- vBoxNew True 5
     containerAdd box ctrlBox
@@ -68,7 +63,7 @@ basesAndCameraControls window = do
     boundSpinButton cam orthoCameraLongitudeDeg "long" 0 360 5 Nothing >>= containerAdd ctrlBox
     resizeCb <- bindCameraToGL cam
     canvas <- setupGL 600 600 resizeCb drawBases
-    setupMouseEvents canvas (linearZoom 1 1 20) cam
+    _ <- setupMouseControl canvas cam
     containerAdd box canvas
     containerAdd window box
 
@@ -82,99 +77,3 @@ boundSpinButton src prop lab min' max' step def = do
     containerAdd box sb
     return box
 
-onMouseMoveLeft :: (Variable v, RealFloat a, Epsilon a) => v (OrthoCamera a) -> (Double, Double) -> IO ()
-onMouseMoveLeft cam (dx, dy) =
-    runStateVar cam $ do
-        w <- use orthoCameraViewportWidth
-        h <- use orthoCameraViewportHeight
-        let v = V2 (2 * realToFrac dx / fromIntegral w) (-2 * realToFrac dy / fromIntegral h)
-        modify (addTranslation v)
-
-onMouseMoveRight :: (Variable v, RealFloat a, Epsilon a) => v (OrthoCamera a) -> (Double, Double) -> IO ()
-onMouseMoveRight cam (dx, dy) =
-    runStateVar cam $ do
-        w <- use orthoCameraViewportWidth
-        h <- use orthoCameraViewportHeight
-        modify . addColatitude . negate $ (pi * realToFrac dy / fromIntegral w)
-        modify . addLongitude $ (pi * realToFrac dx / fromIntegral h)
-
-onMouseScroll :: (Variable v, Num a) => v (OrthoCamera a) -> ZoomModel a -> ScrollDirection -> IO ()
-onMouseScroll cam zm dir =
-    runStateVar cam $ do
-        let z = if dir == ScrollUp then zoomIn else zoomOut
-        orthoCameraScale %= z zm
-
-data MButton = LButton | RButton deriving (Show, Eq, Ord)
-mButton :: MouseButton -> Maybe MButton
-mButton LeftButton = Just LButton
-mButton RightButton = Just RButton
-mButton _ = Nothing
-
-
-data MState = MState [MButton] (Double, Double)
-
-runStateVar :: (MonadIO m, Variable v) => v s -> StateT s m a -> m a
-runStateVar v st = do
-    i <- liftIO $ readVar v
-    (r, o) <- runStateT st i
-    _ <- liftIO $ writeVar v o
-    return r
-
-onButtonEvent :: (Variable v) => (MButton -> [MButton] -> [MButton]) -> v MState -> EventM EButton ()
-onButtonEvent f st = do
-    button <- eventButton
-    coords <- eventCoordinates
-    liftIO $ forM_ (mButton button) (modifyVar st . newState coords)
-  where
-    newState c b (MState bs _) = MState (f b bs) c
-
-
-onMouseMove :: (Variable v1, Variable v2, RealFloat a, Epsilon a) =>
-               v1 (OrthoCamera a) -> v2 MState -> EventM t (Double, Double) -> EventM t ()
-onMouseMove cam st evCoords = do
-    (coords @ (cx, cy)) <- evCoords
-    MState buttons (sx, sy) <- liftIO $ readVar st
-    liftIO $ writeVar st (MState buttons coords)
-    case buttons of
-        LButton : _ -> liftIO $ onMouseMoveLeft cam  (cx - sx, cy - sy)
-        RButton : _ -> liftIO $ onMouseMoveRight cam  (cx - sx, cy - sy)
-        _ -> return ()
-
-data ZoomModel a = ZoomModel { zoomIn  :: a -> a
-                             , zoomOut :: a -> a }
-
-linearZoom :: (Num a, Ord a) => a -> a -> a -> ZoomModel a
-linearZoom step minScale maxScale = listZoom scales
-  where
-    scales = NE.unfold f minScale
-    f s = (s, (+ step) <$> mfilter (< maxScale) (Just s))
-
-geometricZoom :: (Num a, Ord a) => a -> a -> a -> ZoomModel a
-geometricZoom step minScale maxScale = listZoom scales
-  where
-    scales = NE.unfold f minScale
-    f s = (s, (* step) <$> mfilter (< maxScale) (Just s))
-
-listZoom :: (Ord a) => NonEmpty a -> ZoomModel a
-listZoom zooms = ZoomModel (\z -> NE.last $ NE.head zooms :| NE.takeWhile (< z) zooms)
-                           (\z -> NE.head $ foldr NE.cons (NE.last zooms :| []) (NE.dropWhile (<= z) zooms))
-
-setupMouseEvents :: (WidgetClass w, Variable v, RealFloat a, Epsilon a) => w -> ZoomModel a -> v (OrthoCamera a) -> IO ()
-setupMouseEvents w zm cam = do
-    st <- newVar (MState [] (0.0, 0.0)) :: IO (IORef MState)
-    widgetAddEvents w
-        [PointerMotionHintMask,
-        Button1MotionMask, Button3MotionMask,
-        ScrollMask,
-        ButtonPressMask, ButtonReleaseMask]
-        -- TODO the last three should be set by the listeners on press/release/scroll
-    void $ on w motionNotifyEvent $ tryEvent $ do
-        onMouseMove cam st eventCoordinates
-        eventRequestMotions
-    void $ on w buttonPressEvent $ tryEvent $
-        onButtonEvent (\b bs -> b : filter (/= b) bs) st
-    void $ on w buttonReleaseEvent $ tryEvent $
-        onButtonEvent (\b bs -> filter (/= b) bs) st
-    void $ on w scrollEvent $ tryEvent $ do
-        d <- eventScrollDirection
-        liftIO $ onMouseScroll cam zm d

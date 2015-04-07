@@ -8,6 +8,7 @@ executable horbits
   build-depends:   
                    base >= 4.7,
                    transformers >= 0.4.3.0,
+                   mtl >= 2.2.1,
                    lens >= 4.8,
                    containers >= 0.5.6.3,
                    semigroups >= 0.16.2.2,
@@ -69,7 +70,6 @@ test-suite HorbitsTests
   build-depends:   
                    base >= 4.7,
                    HTF >= 0.12.2.4,
-                   mtl >= 2.2.1,
                    QuickCheck >= 2.8,
                    random >= 1.1,
                    rematch >= 0.2.0.0

@@ -4,7 +4,9 @@ module Horbits.Main(main) where
 
 import           Control.Applicative
 import           Control.Lens                 hiding (set)
+import           Data.Binding.Simple
 import           Data.Foldable                (forM_)
+import           Data.IORef
 import           Data.Tree
 import           Graphics.Rendering.OpenGL.GL as GL
 import           Graphics.UI.Gtk
@@ -14,10 +16,12 @@ import           Horbits.Orbit.Geometry
 import           Horbits.SolarSystem
 import           Horbits.UI.BodyDetails
 import           Horbits.UI.BodyList
+import           Horbits.UI.Camera
+import           Horbits.UI.Camera.Control
+import           Horbits.UI.Camera.Zoom
 import           Horbits.UI.GL.GLCamera
 import           Horbits.UI.GL.GLOrbit
 import           Horbits.UI.GL.GLSetup
-import qualified Linear                       as L
 import           Numeric.Units.Dimensional.TF (Dimensional (Dimensional))
 
 main :: IO ()
@@ -39,7 +43,12 @@ layoutDisplay window = do
     containerAdd box =<< bodyDataPane
     rBox <- vBoxNew False 5
     containerAdd box rBox
-    containerAdd rBox =<< setupGL 600 600 (\w h -> projMatrix 5e11 w h >>= setGLCamera) drawCanvas
+    -- TODO four calls, really?
+    camera <- newVar $ orthoCamera (geometricZoom 1.2 (1e6, 1e12)) 600 600 :: IO (Source IORef (OrthoCamera Double))
+    resizeCb <- bindCameraToGL camera
+    canvas <- setupGL 600 600 resizeCb drawCanvas
+    _ <- setupMouseControl canvas camera
+    containerAdd rBox canvas
 
 
 bodyDataPane :: IO VBox
@@ -70,14 +79,6 @@ planetOrbits :: [(RgbaFColor, Orbit)]
 planetOrbits = planets >>= getOrbit
   where
     getOrbit bId = (,) <$> (bId ^.. bodyUiColor) <*> (bId ^.. bodyOrbit)
-
-
-projMatrix :: Integral a => Double -> a -> a -> IO (L.M44 Double)
-projMatrix d w h = return $ L.ortho (-r) r (-b) b (-d) d
-  where
-    (r, b) = if w > h
-                then (d * fromIntegral w / fromIntegral h, d)
-                else (d, d * fromIntegral h / fromIntegral w)
 
 drawCanvas :: IO ()
 drawCanvas = do
