@@ -42,6 +42,28 @@ executable horbits
                    Horbits.UI.GL.GLOrbit,
                    Horbits.UI.GL.GLSetup
 
+executable cc
+  build-depends:   base >= 4.7,
+                   transformers >= 0.4.3.0,
+                   lens >= 4.8,
+                   containers >= 0.5.6.3,
+                   semigroups >= 0.16.2.2,
+                   linear >= 1.18.0.1,
+                   OpenGL >= 2.12.0,
+                   OpenGLRaw >= 2.4.1.0,
+                   gtk >= 0.12.5.7,
+                   gtkglext >= 0.12.5.0,
+                   binding-core >= 0.2.2,
+                   binding-gtk >= 0.2.1
+  ghc-options:     -Wall -rtsopts
+  hs-source-dirs:  src/cc,
+                   src/horbits
+  main-is:         Main.hs
+  other-modules:   
+                   Horbits.UI.Camera,
+                   Horbits.UI.GL.GLCamera,
+                   Horbits.UI.GL.GLSetup
+
 
 test-suite HorbitsTests
   build-depends:   
