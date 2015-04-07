@@ -12,7 +12,6 @@ import           Graphics.Rendering.OpenGL.GL as GL
 import           Graphics.UI.Gtk
 import           Horbits.Body
 import           Horbits.Orbit
-import           Horbits.Orbit.Geometry
 import           Horbits.SolarSystem
 import           Horbits.UI.BodyDetails
 import           Horbits.UI.BodyList
@@ -51,20 +50,30 @@ layoutDisplay window = do
     containerAdd rBox canvas
 
 
-bodyDataPane :: IO VBox
+bodyDataPane :: IO VPaned
 bodyDataPane = do
-    box <- vBoxNew False 5
+    -- body list
     bodyList <- bodyListNew [bodiesTree]
-    containerAdd box $ bodyListView bodyList
+    -- made vertically scrollable
+    bodyListScroll <- scrolledWindowNew Nothing Nothing
+    scrolledWindowSetPolicy bodyListScroll PolicyNever PolicyAutomatic
+    containerAdd bodyListScroll $ bodyListView bodyList
+    -- body details pane
     bodyDetailsPane <- bodyDetailsPaneNew
-    _ <- bodyListOnSelectionChange bodyList (\b -> do
-        putStrLn $ "Selected " ++ b ^. bodyName
-        bodyDetailsPaneSetBody bodyDetailsPane b)
-    containerAdd box $ bodyDetailsPaneView bodyDetailsPane
-    return box
+    -- also made vertically scrollable
+    bodyDetailsScroll <- scrolledWindowNew Nothing Nothing
+    scrolledWindowSetPolicy bodyDetailsScroll PolicyNever PolicyAutomatic
+    scrolledWindowAddWithViewport bodyDetailsScroll $ bodyDetailsPaneView bodyDetailsPane
+    -- reacts to body selection
+    _ <- bodyListOnSelectionChange bodyList (bodyDetailsPaneSetBody bodyDetailsPane)
+    -- Stack them in a VPaned
+    pane <- vPanedNew
+    panedAdd1 pane bodyListScroll
+    panedAdd2 pane bodyDetailsScroll
+    return pane
 
 
-drawPlanetOrbit :: RgbaFColor -> Orbit -> IO ()
+drawPlanetOrbit :: RgbaFColor -> ClassicalOrbit -> IO ()
 drawPlanetOrbit col orbit = do
     let ce = orbit ^. centralOrbit
     let Dimensional c = ce ^. center
@@ -75,7 +84,7 @@ drawPlanetOrbit col orbit = do
 planets :: [BodyId]
 planets = map (view bodyId . rootLabel) . subForest $ bodiesTree
 
-planetOrbits :: [(RgbaFColor, Orbit)]
+planetOrbits :: [(RgbaFColor, ClassicalOrbit)]
 planetOrbits = planets >>= getOrbit
   where
     getOrbit bId = (,) <$> (bId ^.. bodyUiColor) <*> (bId ^.. bodyOrbit)

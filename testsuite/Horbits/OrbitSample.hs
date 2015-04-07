@@ -9,7 +9,7 @@ import           Prelude                              hiding (negate, pi, sqrt, 
 import           Test.QuickCheck
 
 data OrbitSample = OrbitSample { desc  :: String
-                               , orbit :: Orbit
+                               , orbit :: VectorOrbit
                                , sma   :: Length Double
                                , e     :: Dimensionless Double
                                , raan  :: Dimensionless Double
@@ -21,7 +21,7 @@ data OrbitSample = OrbitSample { desc  :: String
 
 sampleOrbits :: [OrbitSample]
 sampleOrbits = [OrbitSample "Circular equatorial 100km"
-                            (Orbit Kerbin (v3 _0 _0 (sqrt hSq0)) (v3 _0 _0 _0) _0)
+                            (VectorOrbit Kerbin (v3 _0 _0 (sqrt hSq0)) (v3 _0 _0 _0) _0)
                             (700000 *~ meter)
                             _0
                             _0
@@ -31,7 +31,7 @@ sampleOrbits = [OrbitSample "Circular equatorial 100km"
                             (100000 *~ meter),
 
                 OrbitSample "Circular equatorial retrograde 100km"
-                            (Orbit Kerbin (v3 _0 _0 (negate $ sqrt hSq0)) (v3 _0 _0 _0) _0)
+                            (VectorOrbit Kerbin (v3 _0 _0 (negate $ sqrt hSq0)) (v3 _0 _0 _0) _0)
                             (700000 *~ meter)
                             _0
                             _0
@@ -41,7 +41,7 @@ sampleOrbits = [OrbitSample "Circular equatorial 100km"
                             (100000 *~ meter),
 
                 OrbitSample "Elliptical (e = 0.2) equatorial with arg.pe = 0"
-                            (Orbit Kerbin (v3 _0 _0 (sqrt $ 0.96 *. hSq0)) (v3 (0.2 *~ one) _0 _0) _0)
+                            (VectorOrbit Kerbin (v3 _0 _0 (sqrt $ 0.96 *. hSq0)) (v3 (0.2 *~ one) _0 _0) _0)
                             (700000 *~ meter)
                             (0.2 *~ one)
                             _0
@@ -51,7 +51,8 @@ sampleOrbits = [OrbitSample "Circular equatorial 100km"
                             ((-40000) *~ meter),
 
                 OrbitSample "Circular 45 deg. incl, raan = 0"
-                            (Orbit Kerbin (v3 _0 (negate . sqrt $ 0.5 *. hSq0) (sqrt $ 0.5 *. hSq0)) (v3 _0 _0 _0) _0)
+                            (VectorOrbit Kerbin (v3 _0 (negate . sqrt $ 0.5 *. hSq0) (sqrt $ 0.5 *. hSq0))
+                                (v3 _0 _0 _0) _0)
                             (700000 *~ meter)
                             _0
                             _0
@@ -61,7 +62,8 @@ sampleOrbits = [OrbitSample "Circular equatorial 100km"
                             (100000 *~ meter),
 
                 OrbitSample "Circular 45 deg. incl, raan = 45 deg."
-                            (Orbit Kerbin (v3 (sqrt $ 0.25 *. hSq0) (negate . sqrt $ 0.25 *. hSq0) (sqrt $ 0.5 *. hSq0))
+                            (VectorOrbit Kerbin
+                                (v3 (sqrt $ 0.25 *. hSq0) (negate . sqrt $ 0.25 *. hSq0) (sqrt $ 0.5 *. hSq0))
                                 (v3 _0 _0 _0) _0)
                             (700000 *~ meter)
                             _0
@@ -72,7 +74,7 @@ sampleOrbits = [OrbitSample "Circular equatorial 100km"
                             (100000 *~ meter),
 
                 OrbitSample "Elliptical (e = 0.2) 45 deg. incl, raan = arg. pe = 0"
-                            (Orbit Kerbin (v3 _0 (negate . sqrt $ 0.48 *. hSq0) (sqrt $ 0.48 *. hSq0))
+                            (VectorOrbit Kerbin (v3 _0 (negate . sqrt $ 0.48 *. hSq0) (sqrt $ 0.48 *. hSq0))
                                 (v3 (0.2 *~ one) _0 _0) _0)
                             (700000 *~ meter)
                             (0.2 *~ one)
@@ -83,7 +85,7 @@ sampleOrbits = [OrbitSample "Circular equatorial 100km"
                             ((-40000) *~ meter),
 
                 OrbitSample "Elliptical (e = 0.2) 45 deg. incl, raan = 0, arg. pe = 90 deg."
-                            (Orbit Kerbin (v3 _0 (negate . sqrt $ 0.48 *. hSq0) (sqrt $ 0.48 *. hSq0))
+                            (VectorOrbit Kerbin (v3 _0 (negate . sqrt $ 0.48 *. hSq0) (sqrt $ 0.48 *. hSq0))
                                 (v3 _0 (0.2 *. sqrt (0.5 *~ one)) (0.2 *. sqrt (0.5 *~ one))) _0)
                             (700000 *~ meter)
                             (0.2 *~ one)
@@ -94,7 +96,7 @@ sampleOrbits = [OrbitSample "Circular equatorial 100km"
                             ((-40000) *~ meter),
 
                 OrbitSample "Elliptical (e = 0.2) 45 deg. incl, raan = 45 deg., arg.pe = 0"
-                            (Orbit Kerbin
+                            (VectorOrbit Kerbin
                                 (v3 (sqrt $ 0.24 *. hSq0) (negate . sqrt $ 0.24 *. hSq0) (sqrt $ 0.48 *. hSq0))
                                 (v3 (0.2 *. sqrt (0.5 *~ one)) (0.2 *. sqrt (0.5 *~ one)) _0) _0)
                             (700000 *~ meter)

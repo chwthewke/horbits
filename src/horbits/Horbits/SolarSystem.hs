@@ -25,7 +25,7 @@ isParentBodyOf b b' = b' ^? parentBodyId == Just b
 closer :: BodyId -> BodyId -> Ordering
 closer b b' = compare (b ^. apoapsis') (b' ^. apoapsis')
   where
-    apoapsis' = pre (bodyOrbit . apoapsis) . non _0
+    apoapsis' = pre (bodyOrbit . orbitApoapsis) . non _0
 
 childPosition :: BodyPosition -> Integer -> BodyId -> BodyPosition
 childPosition (Star b) = flip Planet b

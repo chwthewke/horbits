@@ -1,4 +1,6 @@
 {-# OPTIONS_GHC -F -pgmF htfpp #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE Rank2Types      #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module Horbits.OrbitClassicalTest where
@@ -17,21 +19,22 @@ import           Numeric.Units.Dimensional.TF.Prelude hiding (mod)
 import           Prelude                              hiding (cos, mod, negate, pi, sin, sqrt, (*), (+), (-), (/))
 import           Test.Framework                       hiding (sample)
 
-genOrbits :: Gen Orbit
+genOrbits :: Gen ClassicalOrbit
 genOrbits = anyBody >>= capturedOrbit
 
 tolerance :: Dimensionless Double
 tolerance = 1e-12 *~ one
 
 
-adaptToleranceFor :: Orbit -> Dimensionless Double -> Dimensionless Double
-adaptToleranceFor orbit = (/ (_1 - orbit ^. eccentricity))
+adaptToleranceFor :: OrbitClass t => t -> Dimensionless Double -> Dimensionless Double
+adaptToleranceFor orbit = (/ (_1 - orbit ^. orbitEccentricity))
 
-mkMatcherProperty :: (Orbit -> Dimensionless Double -> Matcher (Quantity d a))
-                     -> (Orbit -> Quantity d a)
-                     -> (Orbit -> Dimensionless Double -> Dimensionless Double)
+mkMatcherProperty :: OrbitClass t =>
+                     (t -> Dimensionless Double -> Matcher (Quantity d a))
+                     -> (t -> Quantity d a)
+                     -> (t -> Dimensionless Double -> Dimensionless Double)
                      -> Dimensionless Double
-                     -> Orbit
+                     -> t
                      -> Property
 mkMatcherProperty expected actual adapt tol orbit =
     matcherProperty (expected orbit (adapt orbit tol)) (actual orbit)
@@ -44,23 +47,23 @@ isCircular :: OrbitSample -> Dimensionless Double -> Bool
 isCircular OrbitSample{..} = e =~ _0
 
 
-matchRaan :: OrbitSample -> Dimensionless Double -> (String, Matcher Orbit)
+matchRaan :: OrbitClass t => OrbitSample -> Dimensionless Double -> (String, Matcher t)
 matchRaan sample@OrbitSample{..} = do
     eq <- isEquatorial sample
     let expectedRaan = if eq then _0 else raan
-    has ("RAAN", rightAscensionOfAscendingNode) <$> closeTo expectedRaan
+    has ("RAAN", orbitRightAscensionOfAscendingNode) <$> closeTo expectedRaan
 
-matchArgPe :: OrbitSample -> Dimensionless Double -> (String, Matcher Orbit)
+matchArgPe :: OrbitClass t => OrbitSample -> Dimensionless Double -> (String, Matcher t)
 matchArgPe sample@OrbitSample{..} = do
     circ <- isCircular sample
     let expectedArgPe = if circ then _0 else arg
-    has ("ARGPE", argumentOfPeriapsis) <$> closeTo expectedArgPe
+    has ("ARGPE", orbitArgumentOfPeriapsis) <$> closeTo expectedArgPe
 
-matchClassicalElements :: OrbitSample -> Dimensionless Double -> Matcher Orbit
+matchClassicalElements :: OrbitClass t => OrbitSample -> Dimensionless Double -> Matcher t
 matchClassicalElements sample@OrbitSample{..} = allOf' <$> sequence
-    [has ("SMA", semiMajorAxis) <$> relativelyCloseTo sma,
-     has ("ECC", eccentricity) <$> closeTo e,
-     has ("INC", inclination) <$> closeTo incl,
+    [has ("SMA", orbitSemiMajorAxis) <$> relativelyCloseTo sma,
+     has ("ECC", orbitEccentricity) <$> closeTo e,
+     has ("INC", orbitInclination) <$> closeTo incl,
      matchRaan sample,
      matchArgPe sample
     ]
@@ -74,89 +77,94 @@ prop_sampleOrbitsShouldHaveExpectedClassicalElements :: Property
 prop_sampleOrbitsShouldHaveExpectedClassicalElements =
     forAll genSampleOrbits $ sampleClassicalElementsApproximatelyEqualExpected tolerance
 
-checkAngularMomentumAtApside :: Getting (Length Double) Orbit (Length Double)
-                                -> Dimensionless Double
-                                -> Orbit
-                                -> Property
+checkAngularMomentumAtApside :: OrbitClass t => Getter t (Length Double) -> t -> Property
 checkAngularMomentumAtApside apside = mkMatcherProperty
-    (\orbit -> relativelyCloseTo (height apside orbit * sqrt (mu orbit * (_2 / height apside orbit - _1 / sma orbit))))
-    (\orbit -> norm $ orbit ^. angularMomentum)
-    adaptToleranceFor
+    (\orbit -> relativelyCloseTo (orbit ^. apside * sqrt (mu orbit * (_2 / orbit ^. apside - _1 / sma orbit))))
+    (\orbit -> norm $ orbit ^. orbitAngularMomentum)
+    adaptToleranceFor tolerance
   where
-    height aps orbit = (orbit ^. orbitBody . bodyRadius) + orbit ^. aps
-    sma orbit = orbit ^. semiMajorAxis
+    sma orbit = orbit ^. orbitSemiMajorAxis
     mu orbit = orbit ^. orbitMu
 
 
 prop_AngularMomentumAtPe :: Property
 prop_AngularMomentumAtPe =
-    forAll genOrbits $ checkAngularMomentumAtApside periapsis tolerance
+    forAll genOrbits $ checkAngularMomentumAtApside orbitPeriapsis
 
 prop_AngularMomentumAtAp :: Property
 prop_AngularMomentumAtAp =
-    forAll genOrbits $ checkAngularMomentumAtApside apoapsis tolerance
+    forAll genOrbits $ checkAngularMomentumAtApside orbitApoapsis
 
-checkApPlusPePlusDiameterIsTwiceSma :: Dimensionless Double -> Orbit -> Property
-checkApPlusPePlusDiameterIsTwiceSma = mkMatcherProperty
-    (\orbit -> relativelyCloseTo (_2 *  orbit ^. semiMajorAxis))
-    (\orbit -> _2 * orbit ^. orbitBody . bodyRadius
-        + orbit ^. apoapsis + orbit ^. periapsis)
+checkApPlusPeIsTwiceSma :: OrbitClass t => Dimensionless Double -> t -> Property
+checkApPlusPeIsTwiceSma = mkMatcherProperty
+    (\orbit -> relativelyCloseTo (_2 *  orbit ^. orbitSemiMajorAxis))
+    (\orbit -> orbit ^. orbitApoapsis + orbit ^. orbitPeriapsis)
     (const id)
 
 prop_ApPeSma :: Property
-prop_ApPeSma = forAll genOrbits $ checkApPlusPePlusDiameterIsTwiceSma tolerance
+prop_ApPeSma = forAll genOrbits $ checkApPlusPeIsTwiceSma tolerance
 
+checkApsideAltitude :: OrbitClass t => Getter t (Length Double) -> Getter t (Length Double) -> t -> Property
+checkApsideAltitude refApside apside = mkMatcherProperty
+    (relativelyCloseTo . view refApside)
+    (\orbit -> orbit ^. apside + orbit ^. orbitBody . bodyRadius)
+    (const id) tolerance
 
-checkApPeEccentricity :: Dimensionless Double -> Orbit -> Property
+prop_ApAltitude :: Property
+prop_ApAltitude = forAll genOrbits $ checkApsideAltitude orbitApoapsis orbitApoapsisAltitude
+
+prop_PeAltitude :: Property
+prop_PeAltitude = forAll genOrbits $ checkApsideAltitude orbitPeriapsis orbitPeriapsisAltitude
+
+checkApPeEccentricity :: OrbitClass t => Dimensionless Double -> t -> Property
 checkApPeEccentricity = mkMatcherProperty
-    (\orbit -> relativelyCloseTo $ (radius orbit + orbit ^. periapsis) * (_1 + orbit ^. eccentricity))
-    (\orbit -> (radius orbit + orbit ^. apoapsis) * (_1 - orbit ^. eccentricity))
+    (\orbit -> relativelyCloseTo $ (orbit ^. orbitPeriapsis) * (_1 + orbit ^. orbitEccentricity))
+    (\orbit -> (orbit ^. orbitApoapsis) * (_1 - orbit ^. orbitEccentricity))
     adaptToleranceFor
-  where radius orbit = orbit ^. orbitBody . bodyRadius
 
 prop_ApPeEccentricity :: Property
 prop_ApPeEccentricity = forAll genOrbits $ checkApPeEccentricity tolerance
 
-checkHzInclination :: Dimensionless Double -> Orbit -> Property
+checkHzInclination :: OrbitClass t => Dimensionless Double -> t -> Property
 checkHzInclination = mkMatcherProperty
-    (\orbit -> relativelyCloseTo $ cos (orbit ^. inclination ) * norm (orbit ^. angularMomentum))
-    (\orbit -> orbit ^. angularMomentum . _z)
+    (\orbit -> relativelyCloseTo $ cos (orbit ^. orbitInclination ) * norm (orbit ^. orbitAngularMomentum))
+    (\orbit -> orbit ^. orbitAngularMomentum . _z)
     (const id)
 
 
 prop_HzInclination :: Property
 prop_HzInclination = forAll genOrbits $ checkHzInclination tolerance
 
-checkHxyRaan :: Dimensionless Double -> Orbit -> Property
+checkHxyRaan :: OrbitClass t => Dimensionless Double -> t -> Property
 checkHxyRaan = mkMatcherProperty
-    (\orbit -> relativelyCloseTo $ cos (raan' orbit) * orbit ^. angularMomentum . _x)
-    (\orbit -> negate (sin (raan' orbit) * orbit ^. angularMomentum . _y))
+    (\orbit -> relativelyCloseTo $ cos (raan' orbit) * orbit ^. orbitAngularMomentum . _x)
+    (\orbit -> negate (sin (raan' orbit) * orbit ^. orbitAngularMomentum . _y))
     (const id)
-  where raan' orbit = orbit ^. rightAscensionOfAscendingNode
+  where raan' orbit = orbit ^. orbitRightAscensionOfAscendingNode
 
 prop_HxyRaan :: Property
 prop_HxyRaan = forAll genOrbits $ checkHxyRaan tolerance
 
-checkEzInclArgPe :: Dimensionless Double -> Orbit -> Property
+checkEzInclArgPe :: OrbitClass t => Dimensionless Double -> t -> Property
 checkEzInclArgPe = mkMatcherProperty
-    (\orbit -> relativelyCloseTo $ orbit ^. eccentricityVector . _z)
-    (\orbit -> sin (orbit ^. inclination) *
-        sin (orbit ^. argumentOfPeriapsis) *
-        orbit ^. eccentricity)
+    (\orbit -> relativelyCloseTo $ orbit ^. orbitEccentricityVector . _z)
+    (\orbit -> sin (orbit ^. orbitInclination) *
+        sin (orbit ^. orbitArgumentOfPeriapsis) *
+        orbit ^. orbitEccentricity)
     (const id)
 
 prop_EzInclArgPe :: Property
 prop_EzInclArgPe = forAll genOrbits $ checkEzInclArgPe tolerance
 
-checkOrbitFromClassicalElements :: Orbit -> Dimensionless Double -> Bool
+checkOrbitFromClassicalElements :: ClassicalOrbit -> Dimensionless Double -> Bool
 checkOrbitFromClassicalElements orbit = orbit =~~ cOrbit
-  where cOrbit = classical (orbit ^. orbitBodyId)
-                           (orbit ^. semiMajorAxis)
-                           (orbit ^. eccentricity)
-                           (orbit ^. rightAscensionOfAscendingNode)
-                           (orbit ^. inclination )
-                           (orbit ^. argumentOfPeriapsis)
-                           (orbit ^. meanAnomalyAtEpoch)
+  where cOrbit = ClassicalOrbit (orbit ^. orbitBodyId)
+                                (orbit ^. orbitSemiMajorAxis)
+                                (orbit ^. orbitEccentricity)
+                                (orbit ^. orbitRightAscensionOfAscendingNode)
+                                (orbit ^. orbitInclination )
+                                (orbit ^. orbitArgumentOfPeriapsis)
+                                (orbit ^. orbitMeanAnomalyAtEpoch)
 
 prop_orbitFromClassicalElements :: Property
 prop_orbitFromClassicalElements = forAll genOrbits $ flip checkOrbitFromClassicalElements tolerance

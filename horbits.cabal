@@ -27,21 +27,29 @@ executable horbits
   main-is:         Main.hs
   other-modules:   
                    Horbits.Body,
+                   Horbits.Data.Variable.State,
                    Horbits.DimLin,
                    Horbits.KerbalDateTime,
                    Horbits.Main,
                    Horbits.Orbit,
+                   Horbits.Orbit.Anomaly,
+                   Horbits.Orbit.Class,
+                   Horbits.Orbit.Data,
+                   Horbits.Orbit.Geometry,
+                   Horbits.Orbit.Properties,
+                   Horbits.Orbit.Velocity,
                    Horbits.SolarSystem,
                    Horbits.Types,
-                   Horbits.Orbit.Geometry,
                    Horbits.UI.BodyDetails,
                    Horbits.UI.BodyList,
                    Horbits.UI.Camera,
-                   Horbits.UI.ShowDim,
+                   Horbits.UI.Camera.Control,
+                   Horbits.UI.Camera.Zoom,
                    Horbits.UI.GL.GLCamera,
                    Horbits.UI.GL.GLIso,
                    Horbits.UI.GL.GLOrbit,
-                   Horbits.UI.GL.GLSetup
+                   Horbits.UI.GL.GLSetup,
+                   Horbits.UI.ShowDim
 
 executable cc
   build-depends:   base >= 4.7,
@@ -73,33 +81,41 @@ test-suite HorbitsTests
                    QuickCheck >= 2.8,
                    random >= 1.1,
                    rematch >= 0.2.0.0
-  ghc-options:     -Wall -rtsopts -fhpc -hpcdir dist/hpc/horbits-0.1
+  ghc-options:     -Wall -rtsopts
   hs-source-dirs:  
                    src/horbits,
                    testsuite
   main-is:         HorbitsTests.hs
   other-modules:   
                    Horbits.Body,
+                   Horbits.Data.Variable.State,
                    Horbits.DimLin,
                    Horbits.KerbalDateTime,
+                   Horbits.KerbalDateTimeTest,
                    Horbits.Main,
                    Horbits.Orbit,
-                   Horbits.SolarSystem,
-                   Horbits.Types,
+                   Horbits.Orbit.Anomaly,
+                   Horbits.Orbit.Class,
+                   Horbits.Orbit.Data,
                    Horbits.Orbit.Geometry,
-                   Horbits.UI.BodyDetails,
-                   Horbits.UI.BodyList,
-                   Horbits.UI.Camera,
-                   Horbits.UI.ShowDim,
-                   Horbits.UI.GL.GLCamera,
-                   Horbits.UI.GL.GLIso,
-                   Horbits.UI.GL.GLOrbit,
-                   Horbits.UI.GL.GLSetup,
-                   Horbits.KerbalDateTimeTest,
+                   Horbits.Orbit.Properties,
+                   Horbits.Orbit.Velocity,
                    Horbits.OrbitClassicalTest,
                    Horbits.OrbitEq,
                    Horbits.OrbitGen,
                    Horbits.OrbitSample,
                    Horbits.Rematch,
+                   Horbits.SolarSystem,
+                   Horbits.Types,
+                   Horbits.UI.BodyDetails,
+                   Horbits.UI.BodyList,
+                   Horbits.UI.Camera,
+                   Horbits.UI.Camera.Control,
+                   Horbits.UI.Camera.Zoom,
+                   Horbits.UI.GL.GLCamera,
+                   Horbits.UI.GL.GLIso,
+                   Horbits.UI.GL.GLOrbit,
+                   Horbits.UI.GL.GLSetup,
+                   Horbits.UI.ShowDim,
                    Horbits.UI.ShowDimTest
   type:            exitcode-stdio-1.0

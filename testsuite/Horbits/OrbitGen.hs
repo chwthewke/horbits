@@ -28,7 +28,7 @@ mkOrth :: (DOne ~ Div d d, d' ~ Mul DOne d') =>
             Quantity d' (V3 Double) -> Quantity d (V3 Double) -> Quantity d' (V3 Double)
 mkOrth v ref = stabilize $ if norm ref == _0 then v else refUnit `cross` v
   where refUnit = ref ^/ norm ref
-        stabilize v' = if norm v' < 1e-12 *. norm v then zero else v'
+        stabilize v' = if norm v' < 1e-12 *. norm v then zero else v' -- TODO dimNearZero
 
 withNorm :: (d' ~ Mul (Div d' d) d, Metric f) => Quantity d (f Double) -> Quantity d' Double -> Quantity d' (f Double)
 withNorm v n =
@@ -46,22 +46,22 @@ sphericalV3 (lo, hi) = do
 randomOrbit :: BodyId ->
                  (Quantity DSpecificAngularMomentum Double, Quantity DSpecificAngularMomentum Double) ->
                  (Dimensionless Double, Dimensionless Double) ->
-                 Gen Orbit
+                 Gen VectorOrbit
 randomOrbit body (loH, hiH) (loE, hiE) = do
         h <- sphericalV3 (loH, hiH)
         e0 <- sphericalV3 (_1, _1)
         eN <- chooseQuantity (loE, hiE) `suchThat` (< _1)
         let e = e0 `mkOrth` h `withNorm` eN
-        return $ Orbit body h e _0
+        return $ VectorOrbit body h e _0
 
-stdRandomOrbit :: BodyId -> Gen Orbit
+stdRandomOrbit :: BodyId -> Gen VectorOrbit
 stdRandomOrbit body = randomOrbit body (loH, hiH) (_0, _1)
   where loH = sqrt (body ^. fromBodyId . bodyGravitationalParam * minAlt)
         hiH = sqrt (_2 * body ^. fromBodyId . bodyGravitationalParam  * minAlt)
         minAlt = body  ^. fromBodyId . bodyRadius +
                  fromMaybe _0 (body ^. fromBodyId . bodyAtmosphereHeight)
 
-capturedOrbit :: BodyId -> Gen Orbit
+capturedOrbit :: BodyId -> Gen ClassicalOrbit
 capturedOrbit bId = do
   ap <- chooseQuantity (minR, maxR)
   pe <- chooseQuantity (minR, ap)
@@ -71,7 +71,7 @@ capturedOrbit bId = do
   incl <- chooseQuantity (_0, pi)
   argPe <- chooseQuantity (_0, tau)
   maae <- chooseQuantity (_0, tau)
-  return $ classical bId sma ecc raan incl argPe maae
+  return $ ClassicalOrbit bId sma ecc raan incl argPe maae
   where body = getBody bId
         minR = body ^. bodyRadius + fromMaybe _0 (body ^. bodyAtmosphereHeight)
         maxR = fromMaybe (1e12 *~ meter) (body ^? bodySphereOfInfluence)
@@ -79,10 +79,10 @@ capturedOrbit bId = do
 
 -- properties of generators
 
-orbitHasOrthogonalHAndE :: Orbit -> Bool
+orbitHasOrthogonalHAndE :: HasVectorOrbit t => t -> Bool
 orbitHasOrthogonalHAndE orbit = e `dot` h < 1e-12 *. (norm e * norm h)
-  where e = orbit ^. eccentricityVector
-        h = orbit ^. angularMomentum
+  where e = orbit ^. orbitEccentricityVector
+        h = orbit ^. orbitAngularMomentum
 
 prop_generatedOrbitsHaveOrthogonalHAndE :: Property
 prop_generatedOrbitsHaveOrthogonalHAndE =
@@ -92,8 +92,8 @@ prop_capturedOrbitsHaveOrthogonalHAndE :: Property
 prop_capturedOrbitsHaveOrthogonalHAndE =
   forAll (anyBody >>= capturedOrbit) orbitHasOrthogonalHAndE
 
-orbitIsElliptical :: Orbit -> Bool
-orbitIsElliptical orbit = norm (orbit ^. eccentricityVector) < _1
+orbitIsElliptical :: HasClassicalOrbit t => t -> Bool
+orbitIsElliptical orbit = orbit ^. orbitEccentricity < _1
 
 prop_generatedOrbitsAreElliptical :: Property
 prop_generatedOrbitsAreElliptical =

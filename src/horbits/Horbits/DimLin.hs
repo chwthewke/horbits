@@ -2,7 +2,7 @@
 
 module Horbits.DimLin(Horbits.DimLin.atan2, _x, _y, _z, _xy, _yx, zero, (^+^), (^-^), (^*), (*^), (^/), (*.),
     cross, dot, dimNearZero, quadrance, qd, distance, Horbits.DimLin.mod, norm, signorm, normalize, project,
-    rotate, rotX, rotZ, v2, v3, V1, V2, V3) where
+    subtract, rotate, rotX, rotZ, v2, v3, V1, V2, V3) where
 
 import           Control.Lens                 hiding ((*~))
 import qualified Data.Fixed                   as DF
@@ -20,9 +20,9 @@ import qualified Linear.V3                    as V3 (cross, _z)
 import qualified Linear.Vector                as V
 import           Numeric.NumType.TF           (Pos2, pos2)
 import           Numeric.Units.Dimensional.TF (DOne, Dimensional (..), Dimensionless, Div, Mul, Pow, Quantity, one, (*),
-                                               (*~))
+                                               (*~), (-))
 import qualified Numeric.Units.Dimensional.TF as D
-import           Prelude                      hiding ((*))
+import           Prelude                      hiding (subtract, (*), (-))
 
 infixl 6 ^+^, ^-^
 infixl 7 ^*, *^, ^/
@@ -80,9 +80,14 @@ liftDM2 = liftD2
 liftDD2 :: DF2 v d d' (Div d d') a b c
 liftDD2 = liftD2
 
+-- subtract
+
+subtract :: Num a => Quantity d a -> Quantity d a -> Quantity d a
+subtract = flip (-)
+
 -- Real modulo
 
-mod :: (Real a) => Quantity d a -> Quantity d a -> Quantity d a
+mod :: Real a => Quantity d a -> Quantity d a -> Quantity d a
 mod = liftDA2 DF.mod'
 
 -- Trig

@@ -111,16 +111,16 @@ headerSection = DetailsSection Nothing (to id)
 
 orbitalSection :: DetailsSection
 orbitalSection = DetailsSection (Just "Orbital Characteristics") (bodyId . bodyOrbit)
-    [ detailOf semiMajorAxis & titled "Semi-major axis" <&> showOrbitalDistance
-    , detailOf apoapsisHeight & titled "Apoapsis" <&> showOrbitalDistance
-    , detailOf periapsisHeight & titled "Periapsis" <&> showOrbitalDistance
-    , detailOf eccentricity & titled "Eccentricity" <&> showDegreeAngle
-    , detailOf inclination & titled "Inclination" <&> showDegreeAngle
-    , detailOf argumentOfPeriapsis & titled "Argument of periapsis" <&> showDegreeAngle
-    , detailOf rightAscensionOfAscendingNode & titled "Longitude of asc. node" <&> showDegreeAngle
-    , detailOf meanAnomalyAtEpoch & titled "Mean anomaly at epoch" <&> showRadianAngle
-    , detailOf orbitalPeriod & titled "Orbital period" <&> showKerbalTime
-    , detailOf orbitalVelocity & titled "Orbital Velocity" <&> showOrbitalVelocity
+    [ detailOf orbitSemiMajorAxis & titled "Semi-major axis" <&> showOrbitalDistance
+    , detailOf orbitApoapsis & titled "Apoapsis" <&> showOrbitalDistance
+    , detailOf orbitPeriapsis & titled "Periapsis" <&> showOrbitalDistance
+    , detailOf orbitEccentricity & titled "Eccentricity" <&> showDegreeAngle
+    , detailOf orbitInclination & titled "Inclination" <&> showDegreeAngle
+    , detailOf orbitArgumentOfPeriapsis & titled "Argument of periapsis" <&> showDegreeAngle
+    , detailOf orbitRightAscensionOfAscendingNode & titled "Longitude of asc. node" <&> showDegreeAngle
+    , detailOf orbitMeanAnomalyAtEpoch & titled "Mean anomaly at epoch" <&> showRadianAngle
+    , detailOf orbitPeriod & titled "Orbital period" <&> showKerbalTime
+    , detailOf orbitVelocity & titled "Orbital Velocity" <&> showOrbitalVelocity
     ]
 
 physicalSection :: DetailsSection
