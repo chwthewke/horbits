@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveFunctor              #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
@@ -6,18 +7,18 @@
 
 module Horbits.KerbalDateTime
     (KerbalTimeComponents, KerbalTime'(), KerbalTime, KerbalInstant'(), KerbalInstant,
-     timeComponents, secondsFraction, seconds, minutes, hours, days, years, duration, epoch)
+     timeComponents, secondsFraction, seconds, minutes, hours, days, years, duration, epoch, isoTime, isoInstant)
   where
 
-import           Control.Applicative
 import           Control.Lens                         hiding ((*~))
 import           Data.List                            (unfoldr)
+import           Horbits.DimLin                       hiding (mod)
 import           Linear.Affine
 import           Linear.Vector
 import           Numeric.Units.Dimensional.TF         (Dimensional (Dimensional))
 import           Numeric.Units.Dimensional.TF.Prelude (Time)
 
-newtype KerbalTime' a = KerbalTime' { fractionalSeconds :: Identity a } deriving (Show, Eq, Ord, Functor, Applicative)
+newtype KerbalTime' a = KerbalTime' { fractionalSeconds :: a } deriving (Show, Eq, Ord, Functor)
 
 type KerbalTime = KerbalTime' Double
 
@@ -35,7 +36,7 @@ class KerbalTimeComponents t where
     timeComponentLens i = timeComponents . _2 . singular (element i)
 
     seconds :: RealFrac a => Lens' (t a) Integer
-    seconds = timeComponentLens  0
+    seconds = timeComponentLens 0
 
     minutes :: RealFrac a => Lens' (t a) Integer
     minutes = timeComponentLens 1
@@ -55,7 +56,7 @@ instance KerbalTimeComponents KerbalTime' where
 instance KerbalTimeComponents KerbalInstant' where
     timeComponents = iso (.-. origin) (origin .+^) . timeComponents
 
-epoch :: KerbalInstant
+epoch :: RealFrac a => KerbalInstant' a
 epoch = origin & years .~ 1 & days .~ 1
 
 duration :: Iso' KerbalTime (Time Double)
@@ -65,10 +66,12 @@ temporalSubdivisions :: Integral a => [a]
 temporalSubdivisions = [ 60, 60, 6, 426 ]
 
 isoNum :: Iso' (KerbalTime' a) a
-isoNum = iso (runIdentity . fractionalSeconds) (KerbalTime' . Identity)
+isoNum = iso fractionalSeconds KerbalTime'
 
 instance Additive KerbalTime' where
-    zero = KerbalTime' $ Identity 0
+    zero = KerbalTime' 0
+    liftU2 f (KerbalTime' a) (KerbalTime' b) = KerbalTime' $ f a b
+    liftI2 f (KerbalTime' a) (KerbalTime' b) = KerbalTime' $ f a b
 
 type DecompState a = Maybe (a, [a])
 
@@ -90,4 +93,8 @@ toParts x = (f, smhdy i)
 fromParts :: Num a => (a, [Integer]) -> a
 fromParts (f, ips) = f + fromIntegral (fromSmhdy ips)
 
+isoTime :: Iso' (KerbalTime' a) (Time a)
+isoTime = isoNum . dim
 
+isoInstant :: RealFrac a => Iso' (KerbalInstant' a) (Time a)
+isoInstant = relative epoch . isoTime

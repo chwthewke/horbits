@@ -6,6 +6,7 @@ import           Horbits.Body
 import           Horbits.Orbit.Class      as X
 import           Horbits.Orbit.Data       as X
 import           Horbits.Orbit.Geometry   as X
+import           Horbits.Orbit.Position   as X
 import           Horbits.Orbit.Properties as X
 import           Horbits.Orbit.Velocity   as X
 
