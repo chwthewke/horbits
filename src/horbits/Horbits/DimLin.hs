@@ -1,8 +1,8 @@
 {-# LANGUAGE TypeFamilies #-}
 
 module Horbits.DimLin(Horbits.DimLin.atan2, _x, _y, _z, _xy, _yx, zero, (^+^), (^-^), (^*), (*^), (^/), (*.),
-    cross, dot, dimNearZero, quadrance, qd, distance, Horbits.DimLin.mod, norm, signorm, normalize, project,
-    subtract, rotate, rotX, rotZ, v2, v3, V1, V2, V3) where
+    cross, dot, dim, dimNearZero, quadrance, qd, distance, Horbits.DimLin.mod, norm, signorm, normalize, project,
+    subtract, Rotation, rotate, rotX, rotZ, v2, v3, V1, V2, V3) where
 
 import           Control.Lens                 hiding ((*~))
 import qualified Data.Fixed                   as DF
@@ -161,17 +161,14 @@ project = liftDA2 N.project
 
 -- Quaternion
 
+type Rotation a = Dimensionless (Q.Quaternion a)
+
 rotate :: (Linear.Conjugate.Conjugate a, RealFloat a) =>
-          Dimensionless (Q.Quaternion a) -> Quantity d (V3 a) -> Quantity d (V3 a)
+          Rotation a -> Quantity d (V3 a) -> Quantity d (V3 a)
 rotate (Dimensional q) = liftDLin $ Q.rotate q
 
-rotX :: Dimensionless Double -> Dimensionless (Q.Quaternion Double)
-rotX = fmap rotX'
---  where rotX' theta = Q.Quaternion (cos $ theta / 2) (V3 (sin $ theta / 2) 0 0)
-  where rotX' = Q.axisAngle (V3 1 0 0)
+rotX :: Dimensionless Double -> Rotation Double
+rotX = fmap $ Q.axisAngle (V3 1 0 0)
 
-
-rotZ :: Dimensionless Double -> Dimensionless (Q.Quaternion Double)
-rotZ = fmap rotZ'
---  where rotZ' theta = Q.Quaternion (cos $ theta / 2) (V3 0 0 (sin $ theta / 2))
-  where rotZ' = Q.axisAngle (V3 0 0 1)
+rotZ :: Dimensionless Double -> Rotation Double
+rotZ = fmap $ Q.axisAngle (V3 0 0 1)

@@ -5,7 +5,7 @@ import           Horbits.Body
 import           Horbits.Orbit.Class
 import           Numeric.Units.Dimensional.TF.Prelude
 
-_bodyOrbit :: BodyId -> Maybe ClassicalOrbit
+_bodyOrbit :: BodyId -> Maybe Orbit
 _bodyOrbit Sun    = Nothing
 _bodyOrbit Kerbin = Just $ classical Sun    (13599840256 *~ meter)
                                             (0.000000 *~ one)
@@ -170,7 +170,7 @@ _bodyOrbit Wal    = Just $ classical Urlum  (33776834 *~ meter)
                                             (0.00 *~ degree)
                                             (2.96 *~ radian)
 
-bodyOrbit :: Fold BodyId ClassicalOrbit
+bodyOrbit :: Fold BodyId Orbit
 bodyOrbit = folding _bodyOrbit
 
 classical :: BodyId
@@ -180,5 +180,5 @@ classical :: BodyId
                -> Dimensionless Double
                -> Dimensionless Double
                -> Dimensionless Double
-               -> ClassicalOrbit
-classical = ClassicalOrbit
+               -> Orbit
+classical = Orbit

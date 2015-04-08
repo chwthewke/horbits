@@ -50,10 +50,10 @@ instance (d ~ Mul DOne d) => RelativeApproximateEq (Quantity d Double) (Dimensio
 instance (d ~ Mul DOne d, Metric f) => RelativeApproximateEq (Quantity d (f Double)) (Dimensionless Double) where
     (=~~) actual expected tolerance = norm (actual ^-^ expected) <= tolerance * norm expected
 
-instance HasVectorOrbit t => RelativeApproximateEq t (Dimensionless Double) where
+instance RelativeApproximateEq Orbit (Dimensionless Double) where
     (=~~) actual expected =
         (actual ^. orbitEccentricityVector) =~~ (expected ^. orbitEccentricityVector) &&&
-            (actual ^. orbitAngularMomentum) =~~ (expected ^. orbitAngularMomentum)
+            (actual ^. orbitAngularMomentumVector) =~~ (expected ^. orbitAngularMomentumVector)
 
 approxMatch :: (Show a, Show t) => (a -> a -> t -> Bool) -> a -> t -> Matcher a
 approxMatch appr expected tolerance = Matcher (\actual -> appr actual expected tolerance)

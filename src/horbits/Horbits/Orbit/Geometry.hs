@@ -1,4 +1,3 @@
-{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Horbits.Orbit.Geometry where
@@ -37,14 +36,15 @@ semiAxes orbit = if dimNearZero _1 (orbit ^. orbitEccentricity)
 eccentricSemiAxes :: OrbitClass t => t -> (Dimensionless (V3 Double), Dimensionless (V3 Double))
 eccentricSemiAxes = do
     e <- view orbitEccentricityVector
-    h <- view orbitAngularMomentum
+    h <- view orbitAngularMomentumVector
     let a = normalize e
     let b = normalize $ h `cross` a
     return (a, b)
 
+-- TODO for this use, can we make good use of the existing raan/arg.pe?
 circularSemiAxes :: OrbitClass t => t -> (Dimensionless (V3 Double), Dimensionless (V3 Double))
 circularSemiAxes = do
-    h <- view orbitAngularMomentum
+    h <- view orbitAngularMomentumVector
     let c = if dimNearZero (norm h) (h ^. _z)
                 then v3 _0 _0 _1
                 else v3 _1 _0 _0

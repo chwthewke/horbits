@@ -46,22 +46,22 @@ sphericalV3 (lo, hi) = do
 randomOrbit :: BodyId ->
                  (Quantity DSpecificAngularMomentum Double, Quantity DSpecificAngularMomentum Double) ->
                  (Dimensionless Double, Dimensionless Double) ->
-                 Gen VectorOrbit
+                 Gen Orbit
 randomOrbit body (loH, hiH) (loE, hiE) = do
         h <- sphericalV3 (loH, hiH)
         e0 <- sphericalV3 (_1, _1)
         eN <- chooseQuantity (loE, hiE) `suchThat` (< _1)
         let e = e0 `mkOrth` h `withNorm` eN
-        return $ VectorOrbit body h e _0
+        return $ vectorOrbit body h e _0
 
-stdRandomOrbit :: BodyId -> Gen VectorOrbit
+stdRandomOrbit :: BodyId -> Gen Orbit
 stdRandomOrbit body = randomOrbit body (loH, hiH) (_0, _1)
   where loH = sqrt (body ^. fromBodyId . bodyGravitationalParam * minAlt)
         hiH = sqrt (_2 * body ^. fromBodyId . bodyGravitationalParam  * minAlt)
         minAlt = body  ^. fromBodyId . bodyRadius +
                  fromMaybe _0 (body ^. fromBodyId . bodyAtmosphereHeight)
 
-capturedOrbit :: BodyId -> Gen ClassicalOrbit
+capturedOrbit :: BodyId -> Gen Orbit
 capturedOrbit bId = do
   ap <- chooseQuantity (minR, maxR)
   pe <- chooseQuantity (minR, ap)
@@ -71,7 +71,7 @@ capturedOrbit bId = do
   incl <- chooseQuantity (_0, pi)
   argPe <- chooseQuantity (_0, tau)
   maae <- chooseQuantity (_0, tau)
-  return $ ClassicalOrbit bId sma ecc raan incl argPe maae
+  return $ Orbit bId sma ecc raan incl argPe maae
   where body = getBody bId
         minR = body ^. bodyRadius + fromMaybe _0 (body ^. bodyAtmosphereHeight)
         maxR = fromMaybe (1e12 *~ meter) (body ^? bodySphereOfInfluence)
@@ -79,10 +79,10 @@ capturedOrbit bId = do
 
 -- properties of generators
 
-orbitHasOrthogonalHAndE :: HasVectorOrbit t => t -> Bool
+orbitHasOrthogonalHAndE :: Orbit -> Bool
 orbitHasOrthogonalHAndE orbit = e `dot` h < 1e-12 *. (norm e * norm h)
   where e = orbit ^. orbitEccentricityVector
-        h = orbit ^. orbitAngularMomentum
+        h = orbit ^. orbitAngularMomentumVector
 
 prop_generatedOrbitsHaveOrthogonalHAndE :: Property
 prop_generatedOrbitsHaveOrthogonalHAndE =
@@ -92,7 +92,7 @@ prop_capturedOrbitsHaveOrthogonalHAndE :: Property
 prop_capturedOrbitsHaveOrthogonalHAndE =
   forAll (anyBody >>= capturedOrbit) orbitHasOrthogonalHAndE
 
-orbitIsElliptical :: HasClassicalOrbit t => t -> Bool
+orbitIsElliptical :: Orbit -> Bool
 orbitIsElliptical orbit = orbit ^. orbitEccentricity < _1
 
 prop_generatedOrbitsAreElliptical :: Property

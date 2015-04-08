@@ -7,6 +7,7 @@ author:         Chewie
 executable horbits
   build-depends:   
                    base >= 4.7,
+                   template-haskell >= 2.9.0.0,
                    transformers >= 0.4.3.0,
                    mtl >= 2.2.1,
                    lens >= 4.8,

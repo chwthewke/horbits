@@ -1,5 +1,4 @@
 {-# OPTIONS_GHC -F -pgmF htfpp #-}
-{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE Rank2Types      #-}
 {-# LANGUAGE RecordWildCards #-}
 
@@ -19,7 +18,7 @@ import           Numeric.Units.Dimensional.TF.Prelude hiding (mod)
 import           Prelude                              hiding (cos, mod, negate, pi, sin, sqrt, (*), (+), (-), (/))
 import           Test.Framework                       hiding (sample)
 
-genOrbits :: Gen ClassicalOrbit
+genOrbits :: Gen Orbit
 genOrbits = anyBody >>= capturedOrbit
 
 tolerance :: Dimensionless Double
@@ -80,7 +79,7 @@ prop_sampleOrbitsShouldHaveExpectedClassicalElements =
 checkAngularMomentumAtApside :: OrbitClass t => Getter t (Length Double) -> t -> Property
 checkAngularMomentumAtApside apside = mkMatcherProperty
     (\orbit -> relativelyCloseTo (orbit ^. apside * sqrt (mu orbit * (_2 / orbit ^. apside - _1 / sma orbit))))
-    (\orbit -> norm $ orbit ^. orbitAngularMomentum)
+    (view orbitAngularMomentum)
     adaptToleranceFor tolerance
   where
     sma orbit = orbit ^. orbitSemiMajorAxis
@@ -127,8 +126,8 @@ prop_ApPeEccentricity = forAll genOrbits $ checkApPeEccentricity tolerance
 
 checkHzInclination :: OrbitClass t => Dimensionless Double -> t -> Property
 checkHzInclination = mkMatcherProperty
-    (\orbit -> relativelyCloseTo $ cos (orbit ^. orbitInclination ) * norm (orbit ^. orbitAngularMomentum))
-    (\orbit -> orbit ^. orbitAngularMomentum . _z)
+    (\orbit -> relativelyCloseTo $ cos (orbit ^. orbitInclination ) * orbit ^. orbitAngularMomentum)
+    (\orbit -> orbit ^. orbitAngularMomentumVector . _z)
     (const id)
 
 
@@ -137,8 +136,8 @@ prop_HzInclination = forAll genOrbits $ checkHzInclination tolerance
 
 checkHxyRaan :: OrbitClass t => Dimensionless Double -> t -> Property
 checkHxyRaan = mkMatcherProperty
-    (\orbit -> relativelyCloseTo $ cos (raan' orbit) * orbit ^. orbitAngularMomentum . _x)
-    (\orbit -> negate (sin (raan' orbit) * orbit ^. orbitAngularMomentum . _y))
+    (\orbit -> relativelyCloseTo $ cos (raan' orbit) * orbit ^. orbitAngularMomentumVector . _x)
+    (\orbit -> negate (sin (raan' orbit) * orbit ^. orbitAngularMomentumVector . _y))
     (const id)
   where raan' orbit = orbit ^. orbitRightAscensionOfAscendingNode
 
@@ -156,15 +155,15 @@ checkEzInclArgPe = mkMatcherProperty
 prop_EzInclArgPe :: Property
 prop_EzInclArgPe = forAll genOrbits $ checkEzInclArgPe tolerance
 
-checkOrbitFromClassicalElements :: ClassicalOrbit -> Dimensionless Double -> Bool
+checkOrbitFromClassicalElements :: Orbit -> Dimensionless Double -> Bool
 checkOrbitFromClassicalElements orbit = orbit =~~ cOrbit
-  where cOrbit = ClassicalOrbit (orbit ^. orbitBodyId)
-                                (orbit ^. orbitSemiMajorAxis)
-                                (orbit ^. orbitEccentricity)
-                                (orbit ^. orbitRightAscensionOfAscendingNode)
-                                (orbit ^. orbitInclination )
-                                (orbit ^. orbitArgumentOfPeriapsis)
-                                (orbit ^. orbitMeanAnomalyAtEpoch)
+  where cOrbit = Orbit (orbit ^. orbitBodyId)
+                       (orbit ^. orbitSemiMajorAxis)
+                       (orbit ^. orbitEccentricity)
+                       (orbit ^. orbitRightAscensionOfAscendingNode)
+                       (orbit ^. orbitInclination )
+                       (orbit ^. orbitArgumentOfPeriapsis)
+                       (orbit ^. orbitMeanAnomalyAtEpoch)
 
 prop_orbitFromClassicalElements :: Property
 prop_orbitFromClassicalElements = forAll genOrbits $ flip checkOrbitFromClassicalElements tolerance

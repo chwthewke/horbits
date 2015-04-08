@@ -1,5 +1,4 @@
-{-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE Rank2Types      #-}
+{-# LANGUAGE Rank2Types #-}
 
 
 module Horbits.Orbit.Properties
@@ -17,6 +16,17 @@ import           Horbits.Orbit.Data
 import           Horbits.Orbit.Velocity
 import           Numeric.Units.Dimensional.TF.Prelude hiding (subtract)
 import           Prelude                              hiding (negate, sqrt, subtract, (*), (+), (-), (/), (^))
+
+
+-- SLR
+_semiLatusRectum :: OrbitClass t => t -> Length Double
+_semiLatusRectum = do
+    h <- view orbitAngularMomentumVector
+    mu <- view orbitMu
+    return $ quadrance h / mu -- TODO: ||h||^2 / mu (do not use vector)
+
+orbitSemiLatusRectum :: OrbitClass t => Getter t (Length Double)
+orbitSemiLatusRectum = to _semiLatusRectum
 
 
 -- AP
@@ -97,7 +107,7 @@ orbitSpecificEnergy = to $ do
 
 orbitVelocity :: OrbitClass t => Getter t OrbitalVelocity
 orbitVelocity = to $ do
-    h <- view orbitAngularMomentum
+    h <- view orbitAngularMomentumVector
     mu <- view orbitMu
     e <- view orbitEccentricity
     let v0 = mu / norm h
