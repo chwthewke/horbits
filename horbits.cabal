@@ -3,6 +3,8 @@ version:        0.1
 cabal-version:  >=1.2
 build-type:     Simple
 author:         Chewie
+data-files:
+                data/body.png
 
 executable horbits
   build-depends:   
@@ -54,7 +56,8 @@ executable horbits
                    Horbits.UI.ShowDim
 
 executable cc
-  build-depends:   base >= 4.7,
+  build-depends:   
+                   base >= 4.7,
                    transformers >= 0.4.3.0,
                    lens >= 4.8,
                    containers >= 0.5.6.3,
@@ -68,14 +71,16 @@ executable cc
                    binding-core >= 0.2.2,
                    binding-gtk >= 0.2.1
   ghc-options:     -Wall -rtsopts
-  hs-source-dirs:  src/cc,
+  hs-source-dirs:  
+                   src/cc,
                    src/horbits
   main-is:         Main.hs
   other-modules:   
                    Horbits.UI.Camera,
+                   Horbits.UI.Camera.Control,
+                   Horbits.UI.Camera.Zoom,
                    Horbits.UI.GL.GLCamera,
                    Horbits.UI.GL.GLSetup
-
 
 test-suite HorbitsTests
   build-depends:   
@@ -123,3 +128,34 @@ test-suite HorbitsTests
                    Horbits.UI.ShowDim,
                    Horbits.UI.ShowDimTest
   type:            exitcode-stdio-1.0
+
+executable sprite
+  build-depends:   base >= 4.7,
+                   transformers >= 0.4.3.0,
+                   lens >= 4.8,
+                   containers >= 0.5.6.3,
+                   semigroups >= 0.16.2.2,
+                   linear >= 1.18.0.1,
+                   OpenGL >= 2.12.0,
+                   OpenGLRaw >= 2.4.1.0,
+                   gtk >= 0.12.5.7,
+                   gtkglext >= 0.12.5.0,
+                   binding-core >= 0.2.2,
+                   binding-gtk >= 0.2.1,
+                   JuicyPixels >= 3.2.3.1,
+                   GLUtil >= 0.8.6,
+                   vector >= 0.10.12.3
+  ghc-options:     -Wall -rtsopts
+  hs-source-dirs:  
+                   src/sprite,
+                   src/horbits 
+  main-is:         Main.hs
+  other-modules:   
+                   Horbits.UI.Camera,
+                   Horbits.UI.Camera.Control,
+                   Horbits.UI.Camera.Zoom,
+                   Horbits.UI.GL.GLCamera,
+                   Horbits.UI.GL.GLSetup,
+                   HorbitsSPR.SpritePointExploration,
+                   Paths_horbits
+
