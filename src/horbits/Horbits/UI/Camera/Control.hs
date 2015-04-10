@@ -7,7 +7,7 @@ import           Data.IORef
 import           Data.Variable
 import           Graphics.UI.Gtk
 import           Horbits.Data.Variable.State
-import           Horbits.UI.Camera
+import           Horbits.UI.Camera.Internal
 import           Linear
 
 -- Ongoing mouse state
@@ -19,14 +19,14 @@ mousePan :: (Monad m, RealFloat a, Epsilon a) => (Double, Double) -> StateT (Ort
 mousePan (dx, dy) = do
     w <- use orthoCameraViewportWidth
     h <- use orthoCameraViewportHeight
-    let v = V2 (2 * realToFrac dx / fromIntegral w) (-2 * realToFrac dy / fromIntegral h)
+    let v = V2 (2 * realToFrac dx / fromIntegral w) (2 * realToFrac dy / fromIntegral h)
     modify (addTranslation v)
 
 mouseRotate :: (Monad m, RealFloat a, Epsilon a) => (Double, Double) -> StateT (OrthoCamera a) m ()
 mouseRotate (dx, dy) = do
     w <- use orthoCameraViewportWidth
     h <- use orthoCameraViewportHeight
-    modify . addColatitude . negate $ (pi * realToFrac dy / fromIntegral w)
+    modify . addColatitude $ negate (pi * realToFrac dy / fromIntegral w)
     modify . addLongitude $ (pi * realToFrac dx / fromIntegral h)
 
 mouseScroll :: (Monad m, Num a, Ord a) => ScrollDirection -> StateT (OrthoCamera a) m ()

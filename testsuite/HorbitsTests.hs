@@ -7,6 +7,7 @@ import           Test.Framework
 import  {-@ HTF_TESTS @-} Horbits.KerbalDateTimeTest
 import  {-@ HTF_TESTS @-} Horbits.OrbitClassicalTest
 import  {-@ HTF_TESTS @-} Horbits.OrbitGen
+import  {-@ HTF_TESTS @-} Horbits.UI.CameraTest
 import  {-@ HTF_TESTS @-} Horbits.UI.ShowDimTest
 
 main :: IO()

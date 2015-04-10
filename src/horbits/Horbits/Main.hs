@@ -16,8 +16,6 @@ import           Horbits.SolarSystem
 import           Horbits.UI.BodyDetails
 import           Horbits.UI.BodyList
 import           Horbits.UI.Camera
-import           Horbits.UI.Camera.Control
-import           Horbits.UI.Camera.Zoom
 import           Horbits.UI.GL.GLCamera
 import           Horbits.UI.GL.GLOrbit
 import           Horbits.UI.GL.GLSetup

@@ -59,6 +59,7 @@ executable cc
                    containers >= 0.5.6.3,
                    semigroups >= 0.16.2.2,
                    linear >= 1.18.0.1,
+                   th-printf >= 0.3.0.0,
                    OpenGL >= 2.12.0,
                    OpenGLRaw >= 2.4.1.0,
                    gtk >= 0.12.5.7,
