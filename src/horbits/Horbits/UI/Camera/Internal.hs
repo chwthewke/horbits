@@ -32,7 +32,9 @@ orthoCameraMatrix cam = scale cam !*! rotateColat cam !*! rotateLong cam !*! tra
 invOrthoCameraMatrix :: (RealFloat a, Epsilon a) => OrthoCamera a -> M44 a
 invOrthoCameraMatrix cam = invTranslate cam !*! invRotateLong cam !*! invRotateColat cam !*! invScale cam
 
--- TODO linear has an ortho matrix that does scale + transl, use it? appearently no
+orthoCameraZIndex :: (RealFloat a, Epsilon a) => OrthoCamera a -> V3 a -> a
+orthoCameraZIndex c = dot (orthoCameraMatrix c ^. _z . _xyz)
+
 
 -- update API
 
