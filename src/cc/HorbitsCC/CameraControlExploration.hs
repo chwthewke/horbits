@@ -7,11 +7,9 @@ import           Control.Monad             hiding (forM_, mapM_)
 import           Control.Monad.IO.Class
 import           Data.Binding.Simple
 import           Data.Foldable
-import           Data.IORef
 import           Graphics.Rendering.OpenGL
 import           Graphics.UI.Gtk           hiding (set)
 import           Horbits.UI.Camera
-import           Horbits.UI.GL.GLCamera
 import           Horbits.UI.GL.GLSetup
 import           Linear
 import           Prelude                   hiding (foldr, mapM_)
@@ -65,7 +63,8 @@ orthoCameraLongitudeDeg = orthoCameraLongitude . degrees
 
 basesAndCameraControls :: Window -> IO ()
 basesAndCameraControls window = do
-    cam <- newVar $ orthoCamera (linearZoom 1 (1, 20)) 600 600 :: IO (Source IORef (OrthoCamera Double))
+    (canvas, cam) <- setupGLWithCamera 600 600 $ initOrthoCamera (linearZoom 1 (1, 20))
+    onGtkGLInit canvas $ onGtkGLDraw canvas drawBases
     box <- hBoxNew False 5
     ctrlBox <- vBoxNew True 5
     containerAdd box ctrlBox
@@ -75,9 +74,6 @@ basesAndCameraControls window = do
     boundSpinButton cam orthoCameraScale "d" 1 20 1 Nothing >>= containerAdd ctrlBox
     boundSpinButton cam orthoCameraColatitudeDeg "colat" 0 180 5 Nothing >>= containerAdd ctrlBox
     boundSpinButton cam orthoCameraLongitudeDeg "long" 0 360 5 Nothing >>= containerAdd ctrlBox
-    resizeCb <- bindCameraToGL cam
-    canvas <- setupGL 600 600 resizeCb drawBases
-    _ <- setupMouseControl canvas cam
     containerAdd box canvas
     containerAdd window box
     void $ on window keyPressEvent $ tryEvent $ do

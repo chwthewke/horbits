@@ -1,36 +1,46 @@
-module Horbits.UI.GL.GLSetup(setupGL) where
+module Horbits.UI.GL.GLSetup(setupGLWithCamera, onGtkGLInit, onGtkGLDraw) where
 
+import           Control.Lens
+import           Control.Monad
 import           Control.Monad.IO.Class
+import           Data.Binding.Simple
+import           Data.IORef
 import           Graphics.Rendering.OpenGL
 import           Graphics.UI.Gtk
 import           Graphics.UI.Gtk.OpenGL
+import           Horbits.UI.Camera
+import           Horbits.UI.GL.GLCamera
 
--- | Setup a GL canvas from a resize callback and a draw loop
--- | TODO Rather monolithic, maybe builders? in CPS?
-setupGL :: Int -- ^ Initial width request
-        -> Int -- ^ Initial height request
-        -> (Int -> Int -> IO ()) -- ^ resize
-        -> IO () -- ^ Draw frame
-        -> IO GLDrawingArea
-setupGL w h resizeCb draw = do
-    glConfig <- glConfigNew [GLModeRGBA, GLModeDepth, GLModeDouble]
-    canvas <- glDrawingAreaNew glConfig
-    widgetSetSizeRequest canvas w h
-    _ <- on canvas realize . withGLDrawingArea canvas . const $ doInit
-    _ <- on canvas sizeAllocate $ \(Rectangle _ _ width height) -> doResize width height
-    _ <- on canvas exposeEvent . tryEvent . liftIO $ withGLDrawingArea canvas doDraw
-    _ <- timeoutAdd (widgetQueueDraw canvas >> return True) (1000 `div` 60)
-    return canvas
-  where
-    doInit = do
+-- | Setup a GL canvas with mouse-controlled ortho camera
+setupGLWithCamera :: Int -- ^ Initial width request
+                  -> Int -- ^ Initial height request
+                  -> OrthoCamera Double -- ^
+                  -> IO (GLDrawingArea, Source IORef (OrthoCamera Double))
+setupGLWithCamera width height camera = do
+    cam <- newVar $ camera & orthoCameraViewportWidth .~ width
+                           & orthoCameraViewportHeight .~ height
+    canvas <- glDrawingAreaNew =<< glConfigNew [GLModeRGBA, GLModeDepth, GLModeDouble]
+    widgetSetSizeRequest canvas width height
+    void $ on canvas realize . withGLDrawingArea canvas . const $ do
+        resizeCb <- bindCameraToGL canvas cam
         clearColor $= Color4 0.0 0.0 0.0 0.0
         depthFunc $= Just Less
         drawBuffer $= BackBuffers
-        doResize w h
-    doResize width height = do
-        viewport $= (Position 0 0, Size (fromIntegral width) (fromIntegral height))
-        resizeCb width height
-    doDraw glWin = do
+        void $ on canvas sizeAllocate $ \(Rectangle _ _ w h) -> do
+            viewport $= (Position 0 0, Size (fromIntegral w) (fromIntegral h))
+            resizeCb w h
+    void $ setupMouseControl canvas cam
+    void $ timeoutAdd (widgetQueueDraw canvas >> return True) (1000 `div` 60)
+    return (canvas, cam)
+
+
+
+onGtkGLInit :: GLDrawingArea -> IO () -> IO ()
+onGtkGLInit canvas = void . on canvas realize . withGLDrawingArea canvas . const
+
+onGtkGLDraw :: GLDrawingArea -> IO () -> IO ()
+onGtkGLDraw canvas drawAction =
+    void . on canvas exposeEvent . tryEvent . liftIO . withGLDrawingArea canvas $ \glWin -> do
         clear [DepthBuffer, ColorBuffer]
-        draw
+        drawAction
         glDrawableSwapBuffers glWin

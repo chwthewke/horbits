@@ -26,8 +26,8 @@ mouseRotate :: (Monad m, RealFloat a, Epsilon a) => (Double, Double) -> StateT (
 mouseRotate (dx, dy) = do
     w <- use orthoCameraViewportWidth
     h <- use orthoCameraViewportHeight
-    modify . addColatitude $ negate (pi * realToFrac dy / fromIntegral w)
-    modify . addLongitude $ (pi * realToFrac dx / fromIntegral h)
+    modify . addColatitude $ pi * realToFrac dy / fromIntegral w
+    modify . addLongitude $ pi * realToFrac dx / fromIntegral h
 
 mouseScroll :: (Monad m, Num a, Ord a) => ScrollDirection -> StateT (OrthoCamera a) m ()
 mouseScroll dir = do
@@ -52,8 +52,8 @@ onMouseMove cam st evCoords = do
     MState buttons (sx, sy) <- liftIO $ readVar st
     liftIO $ writeVar st (MState buttons coords) -- TODO MState manipulation is weak, see above, also <<%= (!)
     runStateVar cam $ case buttons of
-                        LeftButton : _ -> mousePan (cx - sx, cy - sy)
-                        RightButton : _ -> mouseRotate (cx - sx, cy - sy)
+                        LeftButton : _ -> mousePan (cx - sx, sy - cy)
+                        RightButton : _ -> mouseRotate (cx - sx, sy - cy)
                         _ -> return ()
 
 setupMouseControl :: (WidgetClass w, Variable v, RealFloat a, Epsilon a) => w -> v (OrthoCamera a) -> IO [ConnectId w]

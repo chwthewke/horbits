@@ -21,8 +21,8 @@ data OrthoCamera a = OrthoCamera { _orthoCameraCenter         :: V3 a
 
 makeLenses ''OrthoCamera
 
-orthoCamera :: Num a => ZoomModel a -> Int -> Int -> OrthoCamera a
-orthoCamera z@(ZoomModel zs) w h = OrthoCamera zero 0 0 (NE.last zs) w h z
+initOrthoCamera :: Num a => ZoomModel a -> OrthoCamera a
+initOrthoCamera z@(ZoomModel zs) = OrthoCamera zero 0 0 (NE.last zs) 1 1 z
 
 -- transform matrices
 

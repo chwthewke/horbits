@@ -3,19 +3,20 @@ module Horbits.UI.GL.GLCamera(setGLCamera, bindCameraToGL) where
 import           Control.Lens
 import           Data.Binding.Simple
 import           Graphics.Rendering.OpenGL
+import           Graphics.UI.Gtk.OpenGL
 import           Horbits.UI.Camera
 import           Linear
 
-bindCameraToGL :: (RealFloat a, Epsilon a, Variable v) => Source v (OrthoCamera a) -> IO(Int -> Int -> IO ())
-bindCameraToGL cam = do
-    bind cam orthoCameraMatrix () (const setGLCamera)
+bindCameraToGL :: (RealFloat a, Epsilon a, Variable v) =>
+                    GLDrawingArea -> Source v (OrthoCamera a) -> IO(Int -> Int -> IO ())
+bindCameraToGL gld cam = do
+    bind cam orthoCameraMatrix () $ const $ setGLCamera gld
     return resizeViewport
   where
     resizeViewport w h = modifyVar cam $
         set orthoCameraViewportWidth w . set orthoCameraViewportHeight h
 
-setGLCamera :: (Real a) => M44 a -> IO ()
-setGLCamera mat = do
-    -- TODO test RowMajor/no transposing now that we have recent OpenGLRaw?
-    m <- newMatrix ColumnMajor . fmap realToFrac $ transpose mat ^.. traverse.traverse :: IO (GLmatrix GLfloat)
+setGLCamera :: (Real a) => GLDrawingArea -> M44 a -> IO ()
+setGLCamera gld mat = withGLDrawingArea gld . const $ do
+    m <- newMatrix RowMajor . fmap realToFrac $ mat ^.. traverse.traverse :: IO (GLmatrix GLfloat)
     matrix (Just Projection) $= m

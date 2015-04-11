@@ -4,9 +4,7 @@ module Horbits.Main(main) where
 
 import           Control.Applicative
 import           Control.Lens                 hiding (set)
-import           Data.Binding.Simple
 import           Data.Foldable                (forM_)
-import           Data.IORef
 import           Data.Tree
 import           Graphics.Rendering.OpenGL.GL as GL
 import           Graphics.UI.Gtk
@@ -16,7 +14,6 @@ import           Horbits.SolarSystem
 import           Horbits.UI.BodyDetails
 import           Horbits.UI.BodyList
 import           Horbits.UI.Camera
-import           Horbits.UI.GL.GLCamera
 import           Horbits.UI.GL.GLOrbit
 import           Horbits.UI.GL.GLSetup
 import           Numeric.Units.Dimensional.TF (Dimensional (Dimensional))
@@ -40,11 +37,8 @@ layoutDisplay window = do
     containerAdd box =<< bodyDataPane
     rBox <- vBoxNew False 5
     containerAdd box rBox
-    -- TODO four calls, really?
-    camera <- newVar $ orthoCamera (geometricZoom 1.2 (1e6, 1e12)) 600 600 :: IO (Source IORef (OrthoCamera Double))
-    resizeCb <- bindCameraToGL camera
-    canvas <- setupGL 600 600 resizeCb drawCanvas
-    _ <- setupMouseControl canvas camera
+    (canvas, _) <- setupGLWithCamera 600 600 $ initOrthoCamera (geometricZoom 1.2 (1e6, 1e12))
+    onGtkGLInit canvas $ onGtkGLDraw canvas drawCanvas
     containerAdd rBox canvas
 
 
