@@ -60,7 +60,7 @@ stdRandomOrbit body = randomOrbit body (loH, hiH) (_0, _1)
   where loH = sqrt (body ^. fromBodyId . bodyGravitationalParam * minAlt)
         hiH = sqrt (_2 * body ^. fromBodyId . bodyGravitationalParam  * minAlt)
         minAlt = body  ^. fromBodyId . bodyRadius +
-                 fromMaybe _0 (body ^. fromBodyId . bodyAtmosphereHeight)
+                 fromMaybe _0 (body ^? fromBodyId . bodyAtmosphere . atmosphereHeight)
 
 capturedOrbit :: BodyId -> Gen Orbit
 capturedOrbit bId = do
@@ -74,7 +74,7 @@ capturedOrbit bId = do
   maae <- chooseQuantity (_0, tau)
   return $ Orbit bId sma ecc raan incl argPe maae
   where body = getBody bId
-        minR = body ^. bodyRadius + fromMaybe _0 (body ^. bodyAtmosphereHeight)
+        minR = body ^. bodyRadius + fromMaybe _0 (body ^? bodyAtmosphere . atmosphereHeight)
         maxR = fromMaybe (1e12 *~ meter) (body ^? bodySphereOfInfluence)
 
 

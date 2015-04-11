@@ -66,7 +66,7 @@ bodyDataPane = do
     return pane
 
 
-drawPlanetOrbit :: RgbaFColor -> Orbit -> IO ()
+drawPlanetOrbit :: RgbaColor Float -> Orbit -> IO ()
 drawPlanetOrbit col orbit = do
     let ce = orbit ^. centralOrbit
     let Dimensional c = ce ^. center
@@ -77,7 +77,7 @@ drawPlanetOrbit col orbit = do
 planets :: [BodyId]
 planets = map (view bodyId . rootLabel) . subForest $ bodiesTree
 
-planetOrbits :: [(RgbaFColor, Orbit)]
+planetOrbits :: [(RgbaColor Float, Orbit)]
 planetOrbits = planets >>= getOrbit
   where
     getOrbit bId = (,) <$> (bId ^.. bodyUiColor) <*> (bId ^.. bodyOrbit)

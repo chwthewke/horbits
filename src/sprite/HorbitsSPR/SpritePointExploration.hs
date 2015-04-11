@@ -3,6 +3,7 @@ module HorbitsSPR.SpritePointExploration where
 import           Control.Applicative
 import           Control.Monad
 import           Control.Monad.IO.Class
+import           Control.Lens
 import           Data.Binding.Simple
 import           Data.List
 import           Data.Ord
@@ -10,10 +11,10 @@ import           Graphics.GLUtil               (readTexture, texture2DWrap, with
 import           Graphics.Rendering.OpenGL     as GL
 import           Graphics.Rendering.OpenGL.Raw
 import           Graphics.UI.Gtk
-import           Linear
 import           Paths_horbits
 
 import           Horbits.UI.Camera
+import           Horbits.UI.GL.GLIso
 import           Horbits.UI.GL.GLSetup
 
 
@@ -112,14 +113,14 @@ drawSprites cam tex ps =
             glDisable gl_POINT_SPRITE_ARB
   where
     sortPoints = sortBy (comparing (negate . zIdx . fst))
-    zIdx (Vertex3 x y z) = orthoCameraZIndex cam (realToFrac <$> V3 x y z) 
+    zIdx v = orthoCameraZIndex cam (v ^. from glV3) 
 
 
 myTexture :: IO TextureObject
 myTexture = do
     fileName <- getDataFileName "data/body.png"
-    to <- either error id <$> readTexture fileName
+    tex <- either error id <$> readTexture fileName
     textureFilter Texture2D $= ((Linear', Nothing), Linear')
     texture2DWrap $= (Mirrored, ClampToEdge)
-    return to
+    return tex
 
