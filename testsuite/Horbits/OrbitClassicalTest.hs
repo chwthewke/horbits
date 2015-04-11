@@ -7,6 +7,10 @@ module Horbits.OrbitClassicalTest where
 import           Control.Applicative
 import           Control.Lens                         hiding (has, (*~), _1, _2)
 import           Control.Rematch
+import           Numeric.Units.Dimensional.TF.Prelude hiding (mod)
+import           Prelude                              hiding (cos, mod, negate, pi, sin, sqrt, (*), (+), (-), (/))
+import           Test.Framework                       hiding (sample)
+
 import           Horbits.Body
 import           Horbits.DimLin
 import           Horbits.Orbit
@@ -14,9 +18,6 @@ import           Horbits.OrbitEq
 import           Horbits.OrbitGen
 import           Horbits.OrbitSample
 import           Horbits.Rematch
-import           Numeric.Units.Dimensional.TF.Prelude hiding (mod)
-import           Prelude                              hiding (cos, mod, negate, pi, sin, sqrt, (*), (+), (-), (/))
-import           Test.Framework                       hiding (sample)
 
 genOrbits :: Gen Orbit
 genOrbits = anyBody >>= capturedOrbit

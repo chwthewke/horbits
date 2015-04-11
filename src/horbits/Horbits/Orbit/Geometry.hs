@@ -3,11 +3,12 @@
 module Horbits.Orbit.Geometry where
 
 import           Control.Lens                         hiding ((*~), _1)
+import           Numeric.Units.Dimensional.TF.Prelude
+import           Prelude                              hiding (negate, sqrt, (*), (/))
+
 import           Horbits.DimLin
 import           Horbits.Orbit.Class
 import           Horbits.Orbit.Properties
-import           Numeric.Units.Dimensional.TF.Prelude
-import           Prelude                              hiding (negate, sqrt, (*), (/))
 
 data CenterEllipse = CenterEllipse { _center              :: Length (V3 Double)
                                    , _semiMajorAxisVector :: Length (V3 Double)

@@ -4,11 +4,12 @@ module Horbits.UI.CameraTest where
 import           Control.Applicative
 import           Data.Foldable              (Foldable, all)
 import           Data.Traversable           (Traversable)
-import           Horbits.UI.Camera
-import           Horbits.UI.Camera.Internal
 import           Linear
 import           Prelude                    hiding (all)
 import           Test.Framework             hiding (scale)
+
+import           Horbits.UI.Camera
+import           Horbits.UI.Camera.Internal
 
 genCamera :: Gen (OrthoCamera Double)
 genCamera = do

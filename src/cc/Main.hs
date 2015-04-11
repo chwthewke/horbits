@@ -1,6 +1,7 @@
 module Main where
 
 import           Graphics.UI.Gtk
+
 import           HorbitsCC.CameraControlExploration
 
 main :: IO ()

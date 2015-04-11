@@ -12,11 +12,12 @@ module Horbits.KerbalDateTime
 
 import           Control.Lens                         hiding ((*~))
 import           Data.List                            (unfoldr)
-import           Horbits.DimLin                       hiding (mod)
 import           Linear.Affine
 import           Linear.Vector
 import           Numeric.Units.Dimensional.TF         (Dimensional (Dimensional))
 import           Numeric.Units.Dimensional.TF.Prelude (Time)
+
+import           Horbits.DimLin                       hiding (mod)
 
 newtype KerbalTime' a = KerbalTime' { fractionalSeconds :: a } deriving (Show, Eq, Ord, Functor)
 

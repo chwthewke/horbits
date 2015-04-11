@@ -3,8 +3,9 @@ module Horbits.UI.GL.GLIso (glColor, glV3) where
 import           Control.Lens
 import           Foreign.C.Types
 import           Graphics.Rendering.OpenGL.GL as GL
-import           Horbits.Body
 import           Linear.V3
+
+import           Horbits.Body
 
 glColor :: Iso' RgbaFColor (Color4 GLfloat)
 glColor = iso toGlColor fromGlColor

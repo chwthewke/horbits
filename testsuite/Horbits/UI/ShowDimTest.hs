@@ -5,11 +5,12 @@
 module Horbits.UI.ShowDimTest where
 
 import           Control.Rematch
-import           Horbits.Rematch
-import           Horbits.UI.ShowDim
 import           Numeric.Units.Dimensional.TF.Prelude
 import           Prelude                              hiding ((*), (/))
 import           Test.Framework
+
+import           Horbits.Rematch
+import           Horbits.UI.ShowDim
 
 data TestCase = forall d. ShowDim d => TestCase (Quantity d Double) Double String
 

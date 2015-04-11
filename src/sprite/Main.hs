@@ -1,6 +1,7 @@
 module Main where
 
 import           Graphics.UI.Gtk
+
 import           HorbitsSPR.SpritePointExploration
 
 main :: IO ()

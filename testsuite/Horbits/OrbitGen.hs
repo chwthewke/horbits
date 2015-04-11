@@ -5,16 +5,17 @@ module Horbits.OrbitGen where
 
 import           Control.Lens                         hiding ((*~), _1, _2)
 import           Data.Maybe                           (fromMaybe)
-import           Horbits.Body
-import           Horbits.DimLin
-import           Horbits.Orbit
-import           Horbits.Types
 import           Linear.Metric                        (Metric)
 import           Numeric.Units.Dimensional.TF         (Dimensional (Dimensional))
 import           Numeric.Units.Dimensional.TF.Prelude hiding (zero, (^/))
 import           Prelude                              hiding (cos, pi, sin, sqrt, (*), (+), (-), (/))
 import           System.Random
 import           Test.Framework
+
+import           Horbits.Body
+import           Horbits.DimLin
+import           Horbits.Orbit
+import           Horbits.Types
 
 anyBody :: Gen BodyId
 anyBody = arbitraryBoundedEnum

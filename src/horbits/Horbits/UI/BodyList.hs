@@ -6,8 +6,8 @@ import           Control.Lens
 import           Control.Monad
 import           Data.Tree
 import           Graphics.UI.Gtk
-import           Horbits.Body
 
+import           Horbits.Body
 
 data BodyList = BodyList { bodyListView              :: TreeView
                          , bodyListModel             :: TreeStore Body

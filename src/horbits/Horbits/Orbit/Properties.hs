@@ -9,14 +9,14 @@ module Horbits.Orbit.Properties
 import           Control.Applicative
 import           Control.Lens                         hiding (_1, _2)
 import           Control.Monad                        (mfilter)
+import           Numeric.Units.Dimensional.TF.Prelude hiding (subtract)
+import           Prelude                              hiding (negate, sqrt, subtract, (*), (+), (-), (/), (^))
+
 import           Horbits.Body
 import           Horbits.DimLin
 import           Horbits.Orbit.Class
 import           Horbits.Orbit.Data
 import           Horbits.Orbit.Velocity
-import           Numeric.Units.Dimensional.TF.Prelude hiding (subtract)
-import           Prelude                              hiding (negate, sqrt, subtract, (*), (+), (-), (/), (^))
-
 
 -- SLR
 _semiLatusRectum :: OrbitClass t => t -> Length Double

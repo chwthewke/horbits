@@ -16,11 +16,12 @@ module Horbits.OrbitEq
 import           Control.Applicative
 import           Control.Lens                         hiding (_1)
 import           Control.Rematch
-import           Horbits.DimLin
-import           Horbits.Orbit
 import           Linear.Metric                        (Metric)
 import           Numeric.Units.Dimensional.TF.Prelude hiding (mod)
 import           Prelude                              hiding (abs, mod, pi, (*), (+), (-))
+
+import           Horbits.DimLin
+import           Horbits.Orbit
 
 infix 4 =~, =~~
 infixr 3 &&&, |||

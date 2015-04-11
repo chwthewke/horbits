@@ -14,13 +14,14 @@ import           Control.Applicative
 import           Control.Lens                         hiding ((*~), _1, _2)
 import           Control.Monad
 import           Data.List.NonEmpty                   as NE
+import           Numeric.Units.Dimensional.TF.Prelude hiding (atan2, mod)
+import           Prelude                              hiding (atan2, cos, mod, negate, pi, sin, sqrt, (*), (+), (-),
+                                                       (/))
+
 import           Horbits.DimLin
 import           Horbits.KerbalDateTime
 import           Horbits.Orbit.Class
 import           Horbits.Orbit.Properties
-import           Numeric.Units.Dimensional.TF.Prelude hiding (atan2, mod)
-import           Prelude                              hiding (atan2, cos, mod, negate, pi, sin, sqrt, (*), (+), (-),
-                                                       (/))
 
 data OrbitPosition t = OrbitPosition { _positionOrbit            :: t
                                      , _positionDateTime         :: KerbalInstant

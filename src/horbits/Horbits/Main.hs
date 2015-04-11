@@ -8,6 +8,8 @@ import           Data.Foldable                (forM_)
 import           Data.Tree
 import           Graphics.Rendering.OpenGL.GL as GL
 import           Graphics.UI.Gtk
+import           Numeric.Units.Dimensional.TF (Dimensional (Dimensional))
+
 import           Horbits.Body
 import           Horbits.Orbit
 import           Horbits.SolarSystem
@@ -16,7 +18,6 @@ import           Horbits.UI.BodyList
 import           Horbits.UI.Camera
 import           Horbits.UI.GL.GLOrbit
 import           Horbits.UI.GL.GLSetup
-import           Numeric.Units.Dimensional.TF (Dimensional (Dimensional))
 
 main :: IO ()
 main = do

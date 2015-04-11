@@ -8,13 +8,13 @@ module Horbits.Orbit.Class
   where
 
 import           Control.Lens                         hiding (_1, _2)
-import           Horbits.Body
-import           Horbits.DimLin
-import           Horbits.Types
 import           Language.Haskell.TH.Syntax           (mkName)
 import           Numeric.Units.Dimensional.TF.Prelude hiding (atan2)
 import           Prelude                              hiding (atan2, negate, sqrt, (*), (-), (/), (^))
 
+import           Horbits.Body
+import           Horbits.DimLin
+import           Horbits.Types
 -- Definitions and classes
 
 --data VectorOrbit = VectorOrbit { _orbitBodyId             :: BodyId

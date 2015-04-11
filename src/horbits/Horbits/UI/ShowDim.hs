@@ -13,15 +13,16 @@ module Horbits.UI.ShowDim
   where
 
 import           Control.Lens                         hiding ((*~))
-import           Horbits.Body
-import           Horbits.KerbalDateTime
-import           Horbits.Orbit
-import           Horbits.SolarSystem
 import           Numeric.NumType.TF                   (NumType, toNum)
 import           Numeric.Units.Dimensional.TF         (Dimensional (Dimensional))
 import           Numeric.Units.Dimensional.TF.Prelude hiding (abs, (+), _2)
 import           Prelude                              hiding ((/))
 import           Text.Printf.TH
+
+import           Horbits.Body
+import           Horbits.KerbalDateTime
+import           Horbits.Orbit
+import           Horbits.SolarSystem
 
 -- Primitives
 

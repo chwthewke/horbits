@@ -4,8 +4,9 @@ import           Control.Lens
 import           Data.Binding.Simple
 import           Graphics.Rendering.OpenGL
 import           Graphics.UI.Gtk.OpenGL
-import           Horbits.UI.Camera
 import           Linear
+
+import           Horbits.UI.Camera
 
 bindCameraToGL :: (RealFloat a, Epsilon a, Variable v) =>
                     GLDrawingArea -> Source v (OrthoCamera a) -> IO(Int -> Int -> IO ())

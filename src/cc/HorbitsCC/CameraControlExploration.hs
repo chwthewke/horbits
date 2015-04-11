@@ -9,11 +9,12 @@ import           Data.Binding.Simple
 import           Data.Foldable
 import           Graphics.Rendering.OpenGL
 import           Graphics.UI.Gtk           hiding (set)
-import           Horbits.UI.Camera
-import           Horbits.UI.GL.GLSetup
 import           Linear
 import           Prelude                   hiding (foldr, mapM_)
 import           Text.Printf.TH
+
+import           Horbits.UI.Camera
+import           Horbits.UI.GL.GLSetup
 
 -- Cam tests
 

@@ -10,11 +10,11 @@ import           Graphics.GLUtil               (readTexture, texture2DWrap, with
 import           Graphics.Rendering.OpenGL     as GL
 import           Graphics.Rendering.OpenGL.Raw
 import           Graphics.UI.Gtk
-import           Horbits.UI.Camera
-import           Horbits.UI.GL.GLSetup
 import           Linear
 import           Paths_horbits
 
+import           Horbits.UI.Camera
+import           Horbits.UI.GL.GLSetup
 
 
 

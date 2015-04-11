@@ -7,13 +7,13 @@ module Horbits.KerbalDateTimeTest where
 
 import           Control.Applicative
 import           Control.Lens                         hiding (elements, (*~))
-import           Horbits.KerbalDateTime
-import           Horbits.OrbitEq
-import           Horbits.Rematch
 import           Numeric.Units.Dimensional.TF.Prelude hiding (zero, (*))
 import qualified Prelude
 import           Test.Framework
 
+import           Horbits.KerbalDateTime
+import           Horbits.OrbitEq
+import           Horbits.Rematch
 
 (|+|) :: Num a => a -> a -> a
 (|+|) = (Prelude.+)

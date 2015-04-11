@@ -8,6 +8,7 @@ import           Data.IORef
 import           Graphics.Rendering.OpenGL
 import           Graphics.UI.Gtk
 import           Graphics.UI.Gtk.OpenGL
+
 import           Horbits.UI.Camera
 import           Horbits.UI.GL.GLCamera
 

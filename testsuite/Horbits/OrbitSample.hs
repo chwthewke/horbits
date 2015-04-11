@@ -1,12 +1,13 @@
 module Horbits.OrbitSample where
 
 import           Control.Lens                         hiding (elements, (*~))
-import           Horbits.Body
-import           Horbits.DimLin
-import           Horbits.Orbit
 import           Numeric.Units.Dimensional.TF.Prelude
 import           Prelude                              hiding (negate, pi, sqrt, (*))
 import           Test.QuickCheck
+
+import           Horbits.Body
+import           Horbits.DimLin
+import           Horbits.Orbit
 
 data OrbitSample = OrbitSample { desc  :: String
                                , orbit :: Orbit

@@ -10,15 +10,15 @@ import           Control.Lens                         hiding ((*~))
 import           Control.Monad                        hiding (ap, forM_, mapM_, sequence_)
 import           Data.Foldable
 import           Graphics.UI.Gtk                      as Gtk
+import           Numeric.Units.Dimensional.TF.Prelude hiding (mapM_, sequence_)
+import           Prelude                              hiding (mapM_, sequence_, (+), (/))
+
 import           Horbits.Body
 import           Horbits.Orbit
 import           Horbits.SolarSystem
 import           Horbits.UI.ShowDim
-import           Numeric.Units.Dimensional.TF.Prelude hiding (mapM_, sequence_)
-import           Prelude                              hiding (mapM_, sequence_, (+), (/))
 
 -- TODO layout (sizes, L/R align)
--- TODO VScroll
 
 -- Detail definitions
 

@@ -6,9 +6,10 @@ import           Control.Monad.Trans.State
 import           Data.IORef
 import           Data.Variable
 import           Graphics.UI.Gtk
+import           Linear
+
 import           Horbits.Data.Variable.State
 import           Horbits.UI.Camera.Internal
-import           Linear
 
 -- Ongoing mouse state
 data MState = MState [MouseButton] (Double, Double)

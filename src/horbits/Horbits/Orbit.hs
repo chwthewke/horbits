@@ -2,6 +2,7 @@ module Horbits.Orbit (module X, module Horbits.Orbit)
   where
 
 import           Control.Lens
+
 import           Horbits.Body
 import           Horbits.Orbit.Class      as X
 import           Horbits.Orbit.Data       as X

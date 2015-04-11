@@ -5,8 +5,9 @@ module Horbits.UI.Camera.Internal where
 import           Control.Lens
 import           Data.Fixed
 import           Data.List.NonEmpty     as NE
-import           Horbits.UI.Camera.Zoom
 import           Linear
+
+import           Horbits.UI.Camera.Zoom
 
 -- data type
 

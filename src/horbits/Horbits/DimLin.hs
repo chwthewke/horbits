@@ -6,7 +6,6 @@ module Horbits.DimLin(Horbits.DimLin.atan2, _x, _y, _z, _xy, _yx, zero, (^+^), (
 
 import           Control.Lens                 hiding ((*~))
 import qualified Data.Fixed                   as DF
-import           Horbits.Types                ()
 import           Linear.Conjugate             (Conjugate)
 import qualified Linear.Epsilon               as E
 import qualified Linear.Metric                as N

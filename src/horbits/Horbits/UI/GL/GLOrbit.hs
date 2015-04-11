@@ -4,10 +4,11 @@ import           Control.Lens
 import           Foreign.Marshal.Array
 import           Graphics.Rendering.OpenGL.GL  as GL
 import           Graphics.Rendering.OpenGL.GLU
-import           Horbits.Body
-import           Horbits.UI.GL.GLIso
 import           Linear.V3
 import           Linear.Vector
+
+import           Horbits.Body
+import           Horbits.UI.GL.GLIso
 
 drawEllipse' :: RgbaFColor -> GLfloat -> GLfloat -> IO ()
 drawEllipse' c = drawEllipse (c ^. glColor)
