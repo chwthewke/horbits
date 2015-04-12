@@ -1,16 +1,33 @@
-module Horbits.UI.GL.GLOrbit(drawEllipse3d) where
+module Horbits.UI.GL.GLOrbit(drawOrbits) where
 
 import           Control.Applicative
 import           Control.Lens
+import           Data.Foldable                 (forM_)
 import           Foreign.Marshal.Array
 import           Graphics.Rendering.OpenGL.GL  as GL
 import           Graphics.Rendering.OpenGL.GLU
 import           Linear
 
 import           Horbits.Body
+import           Horbits.Data.StateVar
+import           Horbits.Dimensional.Prelude   (dim)
+import           Horbits.Orbit
 import           Horbits.UI.GL.GLIso
 
--- | drawOrbit color center semiMajor semiMinor
+drawOrbits :: [BodyId] -> IO ()
+drawOrbits = withStateVar lineSmooth Enabled . mapM_ drawOrbit
+
+drawOrbit :: BodyId -> IO ()
+drawOrbit body = forM_ (colorAndOrbit body) $ \(col, orbit) -> do
+    let o = orbit ^. orbitCenter . from dim
+    let a = orbit ^. orbitSemiMajorAxisVector . from dim
+    let b = orbit ^. orbitSemiMinorAxisVector . from dim
+    drawEllipse3d col o a b
+
+colorAndOrbit :: BodyId -> Maybe (RgbaColor Float, Orbit)
+colorAndOrbit b = (,) <$> b ^? bodyUiColor <*> b ^? bodyOrbit
+
+-- | drawEllipse3d color center semiMajor semiMinor
 drawEllipse3d :: RgbaColor Float -> V3 Double -> V3 Double -> V3 Double -> IO ()
 drawEllipse3d c o a b = do
     color $ c ^. glColorF

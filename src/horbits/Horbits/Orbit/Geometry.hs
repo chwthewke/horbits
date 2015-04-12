@@ -1,7 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE TemplateHaskell   #-}
 
-module Horbits.Orbit.Geometry(centralOrbit, semiAxes, center, semiMajorAxisVector, semiMinorAxisVector) where
+module Horbits.Orbit.Geometry(orbitSemiAxes, orbitCenter, orbitSemiMajorAxisVector, orbitSemiMinorAxisVector) where
 
 import           Control.Lens                hiding ((*~), _1, _2)
 
@@ -9,28 +8,26 @@ import           Horbits.Dimensional.Prelude
 import           Horbits.Orbit.Class
 import           Horbits.Orbit.Properties
 
--- TODO names! also, direct lenses on Orbit?
-data CenterEllipse = CenterEllipse { _center              :: Length (V3 Double)
-                                   , _semiMajorAxisVector :: Length (V3 Double)
-                                   , _semiMinorAxisVector :: Length (V3 Double)
-                                   }
-
-
-makeLenses ''CenterEllipse
-
-centralOrbit :: OrbitClass t => Getter t CenterEllipse
-centralOrbit = to $ do
-    (a, b) <- semiAxes
-    smaa <- view orbitSemiMajorAxis
-    smia <- view orbitSemiMinorAxis
+orbitCenter :: OrbitClass t => Getter t (Length (V3 Double))
+orbitCenter = to $ do
     e <- view orbitEccentricity
-    let smaaVector = smaa *^ a
-    let smiaVector = smia *^ b
-    let c = negate $ e *^ smaaVector
-    return $ CenterEllipse c smaaVector smiaVector
+    smaa <- view orbitSemiMajorAxisVector
+    return $ negate $ e *^ smaa
 
-semiAxes :: OrbitClass t => t -> (Dimensionless (V3 Double), Dimensionless (V3 Double))
-semiAxes orbit = if nearZero (orbit ^. orbitEccentricity)
+orbitSemiMajorAxisVector :: OrbitClass t => Getter t (Length (V3 Double))
+orbitSemiMajorAxisVector = to $ do
+    smaa <- view orbitSemiMajorAxis
+    (ua, _) <- orbitSemiAxes
+    return $ smaa *^ ua
+
+orbitSemiMinorAxisVector :: OrbitClass t => Getter t (Length (V3 Double))
+orbitSemiMinorAxisVector = to $ do
+    smia <- view orbitSemiMinorAxis
+    (_, ub) <- orbitSemiAxes
+    return $ smia *^ ub
+
+orbitSemiAxes :: OrbitClass t => t -> (Dimensionless (V3 Double), Dimensionless (V3 Double))
+orbitSemiAxes orbit = if nearZero (orbit ^. orbitEccentricity)
                  then circularSemiAxes orbit
                  else eccentricSemiAxes orbit
 

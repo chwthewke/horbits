@@ -64,7 +64,7 @@ trueAnomalyToPositionVector = flip $ \ta -> do
     hv <- view orbitAngularMomentumVector
     mu <- view orbitMu
     let r = quadrance hv / (mu * (_1 + e * cos ta))
-    (ux, uy) <- semiAxes
+    (ux, uy) <- orbitSemiAxes
     return $ r *^ (cos ta *^ ux ^+^ sin ta *^ uy)
 
 
