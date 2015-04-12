@@ -1,10 +1,13 @@
 {-# LANGUAGE TypeFamilies #-}
 
+-- TODO move/rename Horbits.Numeric.Units.....
+-- TODO make a prelude?
+-- TODO single Linear import
 module Horbits.DimLin(Horbits.DimLin.atan2, _x, _y, _z, _xy, _yx, zero, (^+^), (^-^), (^*), (*^), (^/), (*.),
     cross, dot, dim, dimNearZero, quadrance, qd, distance, Horbits.DimLin.mod, norm, signorm, normalize, project,
-    subtract, Rotation, rotate, rotX, rotZ, v2, v3, V1, V2, V3) where
+    subtract, Rotation, rotate, axisAngle, rotX, rotZ, v2, v3, V1, V2, V3) where
 
-import           Control.Lens                 hiding ((*~))
+import           Control.Lens                 hiding ((*~), _1)
 import qualified Data.Fixed                   as DF
 import           Linear.Conjugate             (Conjugate)
 import qualified Linear.Epsilon               as E
@@ -166,8 +169,11 @@ rotate :: (Linear.Conjugate.Conjugate a, RealFloat a) =>
           Rotation a -> Quantity d (V3 a) -> Quantity d (V3 a)
 rotate (Dimensional q) = liftDLin $ Q.rotate q
 
-rotX :: Dimensionless Double -> Rotation Double
-rotX = fmap $ Q.axisAngle (V3 1 0 0)
+axisAngle :: (Floating a, E.Epsilon a) => Quantity d (V3 a) -> Dimensionless a -> Rotation a
+axisAngle = liftD2 Q.axisAngle
 
-rotZ :: Dimensionless Double -> Rotation Double
-rotZ = fmap $ Q.axisAngle (V3 0 0 1)
+rotX :: (Floating a, E.Epsilon a) => Dimensionless a -> Rotation a
+rotX = axisAngle $ v3 D._1 D._0 D._0
+
+rotZ :: (Floating a, E.Epsilon a) => Dimensionless a -> Rotation a
+rotZ = axisAngle $ v3 D._0 D._0 D._1

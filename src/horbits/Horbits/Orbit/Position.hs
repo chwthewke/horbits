@@ -2,7 +2,8 @@
 
 module Horbits.Orbit.Position
     (OrbitPosition,
-    positionOrbit,
+    positionOrbit, positionDateTime, positionMeanAnomaly, positionEccentricAnomaly, positionTrueAnomaly,
+    positionVector,
     eccentricToMeanAnomaly, meanToEccentricAnomaly,
     eccentricToTrueAnomaly, trueToEccentricAnomaly,
     instantToMeanAnomaly, trueAnomalyToPositionVector,
@@ -21,15 +22,16 @@ import           Prelude                              hiding (atan2, cos, mod, n
 import           Horbits.DimLin
 import           Horbits.KerbalDateTime
 import           Horbits.Orbit.Class
+import           Horbits.Orbit.Geometry
 import           Horbits.Orbit.Properties
 
-data OrbitPosition t = OrbitPosition { _positionOrbit            :: t
-                                     , _positionDateTime         :: KerbalInstant
-                                     , _positionMeanAnomaly      :: Dimensionless Double
-                                     , _positionEccentricAnomaly :: Dimensionless Double
-                                     , _positionTrueAnomaly      :: Dimensionless Double
-                                     , _positionVector           :: Length (V3 Double)
-                                     }
+data OrbitPosition t = OrbitPosition { _positionOrbit           :: t
+                                     , positionDateTime         :: KerbalInstant
+                                     , positionMeanAnomaly      :: Dimensionless Double
+                                     , positionEccentricAnomaly :: Dimensionless Double
+                                     , positionTrueAnomaly      :: Dimensionless Double
+                                     , positionVector           :: Length (V3 Double)
+                                     } deriving (Show, Eq)
 
 makeLensesFor [("_positionOrbit", "positionOrbit")] ''OrbitPosition
 
@@ -64,9 +66,9 @@ trueAnomalyToPositionVector = flip $ \ta -> do
     hv <- view orbitAngularMomentumVector
     mu <- view orbitMu
     let r = quadrance hv / (mu * (_1 + e * cos ta))
-    let ux = normalize ev
-    let uy = normalize $ hv `cross` ux
+    (ux, uy) <- semiAxes
     return $ r *^ (cos ta *^ ux ^+^ sin ta *^ uy)
+
 
 instantFromMeanAnomalyAndRevs :: OrbitClass t => t -> Dimensionless Double -> Integer -> KerbalInstant
 instantFromMeanAnomalyAndRevs orbit ma n =

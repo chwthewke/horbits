@@ -1,15 +1,16 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Horbits.Orbit.Geometry where
+module Horbits.Orbit.Geometry(centralOrbit, semiAxes, center, semiMajorAxisVector, semiMinorAxisVector) where
 
-import           Control.Lens                         hiding ((*~), _1)
+import           Control.Lens                         hiding ((*~), _1, _2)
 import           Numeric.Units.Dimensional.TF.Prelude
-import           Prelude                              hiding (negate, sqrt, (*), (/))
+import           Prelude                              hiding (cos, negate, pi, sin, sqrt, (*), (/))
 
 import           Horbits.DimLin
 import           Horbits.Orbit.Class
 import           Horbits.Orbit.Properties
 
+-- TODO names! also, direct lenses on Orbit?
 data CenterEllipse = CenterEllipse { _center              :: Length (V3 Double)
                                    , _semiMajorAxisVector :: Length (V3 Double)
                                    , _semiMinorAxisVector :: Length (V3 Double)
@@ -42,13 +43,13 @@ eccentricSemiAxes = do
     let b = normalize $ h `cross` a
     return (a, b)
 
--- TODO for this use, can we make good use of the existing raan/arg.pe?
+-- TODO for this use, can we make good use of the existing raan/arg.pe? -- yes but tests would be great
 circularSemiAxes :: OrbitClass t => t -> (Dimensionless (V3 Double), Dimensionless (V3 Double))
 circularSemiAxes = do
     h <- view orbitAngularMomentumVector
-    let c = if dimNearZero (norm h) (h ^. _z)
-                then v3 _0 _0 _1
-                else v3 _1 _0 _0
-    let a = normalize $ h `cross` c
-    let b = normalize $ h `cross` a
+    raan <- view orbitRightAscensionOfAscendingNode
+    argp <- view orbitArgumentOfPeriapsis
+    let c = v3 (cos raan) (sin raan) _0
+    let a = rotate (axisAngle h (negate argp)) c
+    let b = rotate (axisAngle h (pi / _2)) a
     return (a, b)
