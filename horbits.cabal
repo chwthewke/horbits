@@ -21,6 +21,8 @@ executable horbits
                    th-printf >= 0.3.0.0,
                    OpenGL >= 2.12.0,
                    OpenGLRaw >= 2.4.1.0,
+                   JuicyPixels >= 3.2.3.1,
+                   GLUtil >= 0.8.6,
                    gtk >= 0.12.5.7,
                    gtkglext >= 0.12.5.0,
                    binding-core >= 0.2.2,
@@ -30,8 +32,15 @@ executable horbits
   main-is:         Main.hs
   other-modules:   
                    Horbits.Body,
+                   Horbits.Body.Atmosphere,
+                   Horbits.Body.Body,
+                   Horbits.Body.Color,
+                   Horbits.Body.Data,
+                   Horbits.Body.Id,
+                   Horbits.Data.StateVar,
                    Horbits.Data.Variable.State,
                    Horbits.DimLin,
+                   Horbits.Graphics.Rendering.OpenGL.PointSpriteARB,
                    Horbits.KerbalDateTime,
                    Horbits.Main,
                    Horbits.Orbit,
@@ -48,11 +57,13 @@ executable horbits
                    Horbits.UI.BodyList,
                    Horbits.UI.Camera,
                    Horbits.UI.Camera.Control,
+                   Horbits.UI.Camera.Internal,
                    Horbits.UI.Camera.Zoom,
                    Horbits.UI.GL.GLCamera,
                    Horbits.UI.GL.GLIso,
                    Horbits.UI.GL.GLOrbit,
                    Horbits.UI.GL.GLSetup,
+                   Horbits.UI.GL.GLTextures,
                    Horbits.UI.ShowDim
 
 executable cc
@@ -151,11 +162,15 @@ executable sprite
                    src/horbits 
   main-is:         Main.hs
   other-modules:   
+                   Horbits.Graphics.Rendering.OpenGL.PointSpriteARB,
                    Horbits.UI.Camera,
                    Horbits.UI.Camera.Control,
+                   Horbits.UI.Camera.Internal,
                    Horbits.UI.Camera.Zoom,
                    Horbits.UI.GL.GLCamera,
+                   Horbits.UI.GL.GLIso,
                    Horbits.UI.GL.GLSetup,
+                   Horbits.UI.GL.GLTextures,
                    HorbitsSPR.SpritePointExploration,
                    Paths_horbits
 
