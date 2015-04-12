@@ -3,7 +3,8 @@
 module Horbits.Orbit.Velocity(OrbitalVelocity(OrbitalVelocity), orbitalVelocityMin, orbitalVelocityMax) where
 
 import           Control.Lens
-import           Numeric.Units.Dimensional.TF.Prelude
+
+import           Horbits.Dimensional.Prelude
 
 data OrbitalVelocity = OrbitalVelocity { _orbitalVelocityMin :: Velocity Double
                                        , _orbitalVelocityMax :: Velocity Double

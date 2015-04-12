@@ -10,14 +10,13 @@ module Horbits.KerbalDateTime
      timeComponents, secondsFraction, seconds, minutes, hours, days, years, duration, epoch, isoTime, isoInstant)
   where
 
-import           Control.Lens                         hiding ((*~))
-import           Data.List                            (unfoldr)
+import           Control.Lens                hiding ((*~))
+import           Data.List                   (unfoldr)
 import           Linear.Affine
-import           Linear.Vector
-import           Numeric.Units.Dimensional.TF         (Dimensional (Dimensional))
-import           Numeric.Units.Dimensional.TF.Prelude (Time)
+import           Linear.Vector               (Additive (..))
 
-import           Horbits.DimLin                       hiding (mod)
+import           Horbits.Dimensional.Prelude (Time, dim)
+
 
 newtype KerbalTime' a = KerbalTime' { fractionalSeconds :: a } deriving (Show, Eq, Ord, Functor)
 
@@ -61,7 +60,7 @@ epoch :: RealFrac a => KerbalInstant' a
 epoch = origin & years .~ 1 & days .~ 1
 
 duration :: Iso' KerbalTime (Time Double)
-duration = isoNum . iso Dimensional (\(Dimensional s) -> s)
+duration = isoNum . dim
 
 temporalSubdivisions :: Integral a => [a]
 temporalSubdivisions = [ 60, 60, 6, 426 ]
@@ -71,8 +70,11 @@ isoNum = iso fractionalSeconds KerbalTime'
 
 instance Additive KerbalTime' where
     zero = KerbalTime' 0
-    liftU2 f (KerbalTime' a) (KerbalTime' b) = KerbalTime' $ f a b
-    liftI2 f (KerbalTime' a) (KerbalTime' b) = KerbalTime' $ f a b
+    liftU2 = _lift
+    liftI2 = _lift
+
+_lift :: (a -> b -> c) -> KerbalTime' a -> KerbalTime' b -> KerbalTime' c
+_lift f (KerbalTime' a) (KerbalTime' b) = KerbalTime' $ f a b
 
 type DecompState a = Maybe (a, [a])
 

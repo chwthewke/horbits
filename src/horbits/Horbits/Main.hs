@@ -9,10 +9,10 @@ import           Data.Tree
 import           Data.Variable
 import           Graphics.Rendering.OpenGL.GL as GL
 import           Graphics.UI.Gtk
-import           Numeric.Units.Dimensional.TF (Dimensional (Dimensional))
 
 import           Horbits.Body
 import           Horbits.Data.StateVar
+import           Horbits.Dimensional.Prelude  (dim)
 import           Horbits.KerbalDateTime
 import           Horbits.Orbit
 import           Horbits.SolarSystem
@@ -76,9 +76,9 @@ bodyDataPane = do
 drawPlanetOrbit :: RgbaColor Float -> Orbit -> IO ()
 drawPlanetOrbit col orbit = do
     let ce = orbit ^. centralOrbit
-    let Dimensional c = ce ^. center
-    let Dimensional a = ce ^. semiMajorAxisVector
-    let Dimensional b = ce ^. semiMinorAxisVector
+    let c = ce ^. center . from dim
+    let a = ce ^. semiMajorAxisVector . from dim
+    let b = ce ^. semiMinorAxisVector . from dim
     drawEllipse3d col c a b
 
 planets :: [BodyId]

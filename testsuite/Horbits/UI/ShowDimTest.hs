@@ -1,14 +1,14 @@
 {-# OPTIONS_GHC -F -pgmF htfpp #-}
 {-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE NoImplicitPrelude         #-}
 {-# LANGUAGE Rank2Types                #-}
 
 module Horbits.UI.ShowDimTest where
 
 import           Control.Rematch
-import           Numeric.Units.Dimensional.TF.Prelude
-import           Prelude                              hiding ((*), (/))
 import           Test.Framework
 
+import           Horbits.Dimensional.Prelude
 import           Horbits.Rematch
 import           Horbits.UI.ShowDim
 

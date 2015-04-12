@@ -6,13 +6,12 @@ import           Data.List
 import           Data.Maybe
 import           Data.Ord
 import           Graphics.Rendering.OpenGL
-import           Linear                                           hiding (trace)
 
 import           Horbits.Body
 import           Horbits.Data.StateVar
-import           Horbits.DimLin                                   hiding (zero)
-import           Horbits.Graphics.Rendering.OpenGL.PointSpriteARB
+import           Horbits.Dimensional.Prelude
 import           Horbits.KerbalDateTime
+import           Horbits.OpenGL.PointSpriteARB
 import           Horbits.Orbit
 import           Horbits.UI.Camera
 import           Horbits.UI.GL.GLIso

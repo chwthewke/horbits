@@ -1,12 +1,11 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE TemplateHaskell   #-}
 
 module Horbits.Orbit.Geometry(centralOrbit, semiAxes, center, semiMajorAxisVector, semiMinorAxisVector) where
 
-import           Control.Lens                         hiding ((*~), _1, _2)
-import           Numeric.Units.Dimensional.TF.Prelude
-import           Prelude                              hiding (cos, negate, pi, sin, sqrt, (*), (/))
+import           Control.Lens                hiding ((*~), _1, _2)
 
-import           Horbits.DimLin
+import           Horbits.Dimensional.Prelude
 import           Horbits.Orbit.Class
 import           Horbits.Orbit.Properties
 
@@ -31,7 +30,7 @@ centralOrbit = to $ do
     return $ CenterEllipse c smaaVector smiaVector
 
 semiAxes :: OrbitClass t => t -> (Dimensionless (V3 Double), Dimensionless (V3 Double))
-semiAxes orbit = if dimNearZero _1 (orbit ^. orbitEccentricity)
+semiAxes orbit = if nearZero (orbit ^. orbitEccentricity)
                  then circularSemiAxes orbit
                  else eccentricSemiAxes orbit
 

@@ -1,4 +1,5 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE TemplateHaskell   #-}
 
 module Horbits.Orbit.Position
     (OrbitPosition,
@@ -12,14 +13,11 @@ module Horbits.Orbit.Position
   where
 
 import           Control.Applicative
-import           Control.Lens                         hiding ((*~), _1, _2)
+import           Control.Lens                hiding ((*~), _1, _2)
 import           Control.Monad
-import           Data.List.NonEmpty                   as NE
-import           Numeric.Units.Dimensional.TF.Prelude hiding (atan2, mod)
-import           Prelude                              hiding (atan2, cos, mod, negate, pi, sin, sqrt, (*), (+), (-),
-                                                       (/))
+import           Data.List.NonEmpty          as NE
 
-import           Horbits.DimLin
+import           Horbits.Dimensional.Prelude
 import           Horbits.KerbalDateTime
 import           Horbits.Orbit.Class
 import           Horbits.Orbit.Geometry
@@ -43,7 +41,7 @@ meanToEccentricAnomaly orbit ma = NE.last $ NE.unfold next ea0
       where
         e = orbit ^. orbitEccentricity
         dnext ean = (ma + e * sin ean - ean) / (_1 - e * cos ean)
-        next ean = (ean, (ean +) <$> mfilter (not . dimNearZero (0.001 *~ one)) (Just $ dnext ean))
+        next ean = (ean, (ean +) <$> mfilter (not . nearZeroOf (0.001 *~ one)) (Just $ dnext ean))
         ea0 = if e > (0.8 *~ one) then pi else ma
 
 eccentricToTrueAnomaly :: OrbitClass t => t -> Dimensionless Double -> Dimensionless Double
@@ -72,7 +70,7 @@ trueAnomalyToPositionVector = flip $ \ta -> do
 
 instantFromMeanAnomalyAndRevs :: OrbitClass t => t -> Dimensionless Double -> Integer -> KerbalInstant
 instantFromMeanAnomalyAndRevs orbit ma n =
-    (((fromIntegral n *~ one * tau) + ma) * orbit ^. orbitPeriod) ^. from isoInstant
+    (((fromIntegral n *. tau) + ma) * orbit ^. orbitPeriod) ^. from isoInstant
 
 orbitPositionFromInstant :: OrbitClass t => t -> KerbalInstant -> OrbitPosition t
 orbitPositionFromInstant orbit instant =

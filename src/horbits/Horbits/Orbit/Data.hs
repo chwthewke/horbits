@@ -1,9 +1,9 @@
 module Horbits.Orbit.Data(bodyOrbit) where
 
-import           Control.Lens                         hiding ((*~))
-import           Numeric.Units.Dimensional.TF.Prelude
+import           Control.Lens                hiding ((*~))
 
 import           Horbits.Body
+import           Horbits.Dimensional.Prelude
 import           Horbits.Orbit.Class
 
 _bodyOrbit :: BodyId -> Maybe Orbit

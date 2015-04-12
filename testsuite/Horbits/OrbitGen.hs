@@ -1,19 +1,16 @@
 {-# OPTIONS_GHC -F -pgmF htfpp #-}
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE TypeFamilies      #-}
 
 module Horbits.OrbitGen where
 
-import           Control.Lens                         hiding ((*~), _1, _2)
-import           Data.Maybe                           (fromMaybe)
-import           Linear.Metric                        (Metric)
-import           Numeric.Units.Dimensional.TF         (Dimensional (Dimensional))
-import           Numeric.Units.Dimensional.TF.Prelude hiding (zero, (^/))
-import           Prelude                              hiding (cos, pi, sin, sqrt, (*), (+), (-), (/))
+import           Control.Lens                hiding ((*~), _1, _2)
+import           Data.Maybe                  (fromMaybe)
 import           System.Random
 import           Test.Framework
 
 import           Horbits.Body
-import           Horbits.DimLin
+import           Horbits.Dimensional.Prelude
 import           Horbits.Orbit
 import           Horbits.Types
 
@@ -21,20 +18,20 @@ anyBody :: Gen BodyId
 anyBody = arbitraryBoundedEnum
 
 chooseQuantity :: (Random a) => (Quantity d a, Quantity d a) -> Gen (Quantity d a)
-chooseQuantity (Dimensional lo, Dimensional hi) = do
-  val <- choose (lo, hi)
-  return $ Dimensional val
+chooseQuantity (lo, hi) = do
+  val <- choose (lo ^. from dim, hi ^. from dim)
+  return $ val ^. dim
 
 mkOrth :: (DOne ~ Div d d, d' ~ Mul DOne d') =>
             Quantity d' (V3 Double) -> Quantity d (V3 Double) -> Quantity d' (V3 Double)
 mkOrth v ref = stabilize $ if norm ref == _0 then v else refUnit `cross` v
   where refUnit = ref ^/ norm ref
-        stabilize v' = if norm v' < 1e-12 *. norm v then zero else v' -- TODO dimNearZero
+        stabilize v' = if norm v' < 1e-12 *. norm v then dimZero else v' -- TODO dimNearZero
 
 withNorm :: (d' ~ Mul (Div d' d) d, Metric f) => Quantity d (f Double) -> Quantity d' Double -> Quantity d' (f Double)
 withNorm v n =
     if norm v == _0
-      then zero
+      then dimZero
       else (n / norm v) *^ v
 
 sphericalV3 :: (d ~ Mul DOne d) => (Quantity d Double, Quantity d Double) -> Gen (Quantity d (V3 Double))

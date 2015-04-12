@@ -1,16 +1,16 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE TemplateHaskell   #-}
 
 module Horbits.Body.Body(Body(Body),
     bodyId, bodyName, bodyGravitationalParam, bodyRadius, bodySiderealRotationPeriod, bodyAtmosphere,
     bodySphereOfInfluence, bodySurfaceArea, bodyMass, bodyDensity, bodySurfaceGravity, bodyEscapeVelocity,
     bodySiderealRotationVelocity, bodySynchronousOrbitAltitude) where
 
-import           Control.Lens                         hiding ((*~), _2, _3, _4)
-import           Numeric.Units.Dimensional.TF.Prelude
-import           Prelude                              hiding (pi, sqrt, (*), (-), (/), (^))
+import           Control.Lens                hiding ((*~), _2, _3, _4)
 
 import           Horbits.Body.Atmosphere
 import           Horbits.Body.Id
+import           Horbits.Dimensional.Prelude
 
 data Body = Body { _bodyId                     :: BodyId
                  , _bodyName                   :: String

@@ -39,10 +39,11 @@ executable horbits
                    Horbits.Body.Id,
                    Horbits.Data.StateVar,
                    Horbits.Data.Variable.State,
-                   Horbits.DimLin,
-                   Horbits.Graphics.Rendering.OpenGL.PointSpriteARB,
+                   Horbits.Dimensional.Internal,
+                   Horbits.Dimensional.Prelude,
                    Horbits.KerbalDateTime,
                    Horbits.Main,
+                   Horbits.OpenGL.PointSpriteARB,
                    Horbits.Orbit,
                    Horbits.Orbit.Anomaly,
                    Horbits.Orbit.Class,
@@ -65,7 +66,8 @@ executable horbits
                    Horbits.UI.GL.GLOrbit,
                    Horbits.UI.GL.GLSetup,
                    Horbits.UI.GL.GLTextures,
-                   Horbits.UI.ShowDim
+                   Horbits.UI.ShowDim,
+                   Paths_horbits
 
 executable cc
   build-depends:   
@@ -109,7 +111,7 @@ test-suite HorbitsTests
   other-modules:   
                    Horbits.Body,
                    Horbits.Data.Variable.State,
-                   Horbits.DimLin,
+                   Horbits.Dimensional.Prelude,
                    Horbits.KerbalDateTime,
                    Horbits.KerbalDateTimeTest,
                    Horbits.Main,
@@ -163,7 +165,7 @@ executable sprite
                    src/horbits 
   main-is:         Main.hs
   other-modules:   
-                   Horbits.Graphics.Rendering.OpenGL.PointSpriteARB,
+                   Horbits.OpenGL.PointSpriteARB,
                    Horbits.UI.Camera,
                    Horbits.UI.Camera.Control,
                    Horbits.UI.Camera.Internal,

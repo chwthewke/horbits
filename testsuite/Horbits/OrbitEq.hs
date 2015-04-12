@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
 {-# LANGUAGE OverlappingInstances  #-}
 {-# LANGUAGE TypeFamilies          #-}
 
@@ -14,13 +15,10 @@ module Horbits.OrbitEq
   where
 
 import           Control.Applicative
-import           Control.Lens                         hiding (_1)
+import           Control.Lens                hiding (_1)
 import           Control.Rematch
-import           Linear.Metric                        (Metric)
-import           Numeric.Units.Dimensional.TF.Prelude hiding (mod)
-import           Prelude                              hiding (abs, mod, pi, (*), (+), (-))
 
-import           Horbits.DimLin
+import           Horbits.Dimensional.Prelude
 import           Horbits.Orbit
 
 infix 4 =~, =~~

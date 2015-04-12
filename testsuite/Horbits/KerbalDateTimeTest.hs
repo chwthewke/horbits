@@ -1,16 +1,17 @@
 {-# OPTIONS_GHC -F -pgmF htfpp #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE ImpredicativeTypes        #-}
+{-# LANGUAGE NoImplicitPrelude         #-}
 {-# LANGUAGE Rank2Types                #-}
 
 module Horbits.KerbalDateTimeTest where
 
 import           Control.Applicative
-import           Control.Lens                         hiding (elements, (*~))
-import           Numeric.Units.Dimensional.TF.Prelude hiding (zero, (*))
+import           Control.Lens                hiding (elements, (*~))
 import qualified Prelude
 import           Test.Framework
 
+import           Horbits.Dimensional.Prelude
 import           Horbits.KerbalDateTime
 import           Horbits.OrbitEq
 import           Horbits.Rematch

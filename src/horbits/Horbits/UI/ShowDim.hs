@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE NoImplicitPrelude    #-}
 {-# LANGUAGE QuasiQuotes          #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE TypeFamilies         #-}
@@ -12,14 +13,13 @@ module Horbits.UI.ShowDim
     showKerbalTime, showOrbitalDistance, showPlanetaryDistance, showOrbitalVelocity)
   where
 
-import           Control.Lens                         hiding ((*~))
-import           Numeric.NumType.TF                   (NumType, toNum)
-import           Numeric.Units.Dimensional.TF         (Dimensional (Dimensional))
-import           Numeric.Units.Dimensional.TF.Prelude hiding (abs, (+), _2)
-import           Prelude                              hiding ((/))
+import           Control.Lens                hiding ((*~))
+import           Numeric.NumType.TF          (NumType, toNum)
+import           Prelude                     (abs, mod, (+))
 import           Text.Printf.TH
 
 import           Horbits.Body
+import           Horbits.Dimensional.Prelude hiding (abs, mod, (+), _2)
 import           Horbits.KerbalDateTime
 import           Horbits.Orbit
 import           Horbits.SolarSystem
@@ -27,7 +27,7 @@ import           Horbits.SolarSystem
 -- Primitives
 
 showUnit :: ShowDim d => Quantity d a -> (a, String)
-showUnit q@(Dimensional x) = (x, showDim q)
+showUnit q = (q ^. from dim, showDim q)
 
 showQuantityWith :: ShowDim d => (a -> String -> String) -> Quantity d a -> String
 showQuantityWith fmt = uncurry fmt . showUnit
@@ -121,7 +121,7 @@ instance ( NumType l
     showDim q = if null (renderDim q) then "" else " " ++ renderDim q
 
 instance forall d a. ShowDim d => ShowDim (Quantity d a) where
-    showDim (Dimensional _) = showDim (undefined :: d)
+    showDim _ = showDim (undefined :: d)
 
 data Sign a = Null | Pos a | Neg a
 

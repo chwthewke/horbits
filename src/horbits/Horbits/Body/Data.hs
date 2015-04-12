@@ -1,11 +1,13 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+
+
 module Horbits.Body.Data(getAtmosphere, getPhysicalAttrs, getSphereOfInfluence, getColor) where
 
-import           Numeric.Units.Dimensional.TF.Prelude
-import           Prelude                              hiding ((/), (^))
 
 import           Horbits.Body.Atmosphere
 import           Horbits.Body.Color
 import           Horbits.Body.Id
+import           Horbits.Dimensional.Prelude
 
 mkAtmosphere :: Double -> Double -> Double -> Maybe Atmosphere
 mkAtmosphere h p s = Just $ Atmosphere (h *~ meter) (p *~ kilo pascal) (s *~ meter)

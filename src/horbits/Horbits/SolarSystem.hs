@@ -1,11 +1,11 @@
 module Horbits.SolarSystem (BodyPosition(..), bodiesList, bodiesTree, bodyPosition) where
 
 import           Control.Lens
-import           Data.List                            (sortBy)
+import           Data.List                   (sortBy)
 import           Data.Tree
-import           Numeric.Units.Dimensional.TF.Prelude
 
 import           Horbits.Body
+import           Horbits.Dimensional.Prelude
 import           Horbits.Orbit
 
 data BodyPosition = Star BodyId | Planet Integer BodyId BodyId | Moon Integer BodyId BodyId

@@ -1,18 +1,17 @@
 {-# OPTIONS_GHC -F -pgmF htfpp #-}
-{-# LANGUAGE Rank2Types      #-}
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE Rank2Types        #-}
+{-# LANGUAGE RecordWildCards   #-}
 
 module Horbits.OrbitClassicalTest where
 
 import           Control.Applicative
-import           Control.Lens                         hiding (has, (*~), _1, _2)
+import           Control.Lens                hiding (has, (*~), _1, _2)
 import           Control.Rematch
-import           Numeric.Units.Dimensional.TF.Prelude hiding (mod)
-import           Prelude                              hiding (cos, mod, negate, pi, sin, sqrt, (*), (+), (-), (/))
-import           Test.Framework                       hiding (sample)
+import           Test.Framework              hiding (sample)
 
 import           Horbits.Body
-import           Horbits.DimLin
+import           Horbits.Dimensional.Prelude
 import           Horbits.Orbit
 import           Horbits.OrbitEq
 import           Horbits.OrbitGen

@@ -1,4 +1,5 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE TemplateHaskell   #-}
 
 module Horbits.Orbit.Class
     (Orbit(Orbit), OrbitClass(..),
@@ -7,13 +8,11 @@ module Horbits.Orbit.Class
     orbitAngularMomentumVector, orbitAngularMomentum, orbitEccentricityVector)
   where
 
-import           Control.Lens                         hiding (_1, _2)
-import           Language.Haskell.TH.Syntax           (mkName)
-import           Numeric.Units.Dimensional.TF.Prelude hiding (atan2)
-import           Prelude                              hiding (atan2, negate, sqrt, (*), (-), (/), (^))
+import           Control.Lens                hiding (_1, _2)
+import           Language.Haskell.TH.Syntax  (mkName)
 
 import           Horbits.Body
-import           Horbits.DimLin
+import           Horbits.Dimensional.Prelude
 import           Horbits.Types
 -- Definitions and classes
 

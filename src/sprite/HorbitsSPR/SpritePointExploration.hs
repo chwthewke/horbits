@@ -9,7 +9,7 @@ import           Data.Ord
 import           Graphics.Rendering.OpenGL     as GL
 import           Graphics.UI.Gtk
 
-import           Horbits.Graphics.Rendering.OpenGL.PointSpriteARB
+import           Horbits.OpenGL.PointSpriteARB
 import           Horbits.UI.Camera
 import           Horbits.UI.GL.GLIso
 import           Horbits.UI.GL.GLSetup

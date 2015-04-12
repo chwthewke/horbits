@@ -1,4 +1,5 @@
-{-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE Rank2Types        #-}
 
 
 module Horbits.Orbit.Properties
@@ -7,13 +8,11 @@ module Horbits.Orbit.Properties
   where
 
 import           Control.Applicative
-import           Control.Lens                         hiding (_1, _2)
-import           Control.Monad                        (mfilter)
-import           Numeric.Units.Dimensional.TF.Prelude hiding (subtract)
-import           Prelude                              hiding (negate, sqrt, subtract, (*), (+), (-), (/), (^))
+import           Control.Lens                hiding (_1, _2)
+import           Control.Monad               (mfilter)
 
 import           Horbits.Body
-import           Horbits.DimLin
+import           Horbits.Dimensional.Prelude
 import           Horbits.Orbit.Class
 import           Horbits.Orbit.Data
 import           Horbits.Orbit.Velocity

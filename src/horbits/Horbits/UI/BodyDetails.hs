@@ -1,5 +1,6 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FlexibleInstances         #-}
+{-# LANGUAGE NoImplicitPrelude         #-}
 {-# LANGUAGE Rank2Types                #-}
 {-# LANGUAGE TypeSynonymInstances      #-}
 
@@ -10,10 +11,9 @@ import           Control.Lens                         hiding ((*~))
 import           Control.Monad                        hiding (ap, forM_, mapM_, sequence_)
 import           Data.Foldable
 import           Graphics.UI.Gtk                      as Gtk
-import           Numeric.Units.Dimensional.TF.Prelude hiding (mapM_, sequence_)
-import           Prelude                              hiding (mapM_, sequence_, (+), (/))
 
 import           Horbits.Body
+import           Horbits.Dimensional.Prelude hiding (mapM_, sequence_)
 import           Horbits.Orbit
 import           Horbits.SolarSystem
 import           Horbits.UI.ShowDim

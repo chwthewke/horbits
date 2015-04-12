@@ -1,4 +1,4 @@
-module Horbits.Graphics.Rendering.OpenGL.PointSpriteARB(pointSpriteARB) where
+module Horbits.OpenGL.PointSpriteARB(pointSpriteARB) where
 
 import           Control.Applicative
 import           Graphics.Rendering.OpenGL

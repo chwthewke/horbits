@@ -4,7 +4,8 @@ module Horbits.Body.Atmosphere(
     Atmosphere(Atmosphere), atmosphereHeight, atmosphereScaleHeight, atmosphericPressure) where
 
 import           Control.Lens
-import           Numeric.Units.Dimensional.TF.Prelude
+
+import           Horbits.Dimensional.Prelude
 
 data Atmosphere = Atmosphere { _atmosphereHeight      :: Length Double
                              , _atmosphericPressure   :: Pressure Double

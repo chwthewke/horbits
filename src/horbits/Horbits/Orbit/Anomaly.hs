@@ -2,9 +2,9 @@ module Horbits.Orbit.Anomaly where
 
 import           Control.Applicative
 import           Control.Monad
-import           Data.List.NonEmpty           as NE
-import           Linear.Epsilon
-import           Numeric.Units.Dimensional.TF (Dimensional (..), Dimensionless)
+import           Data.List.NonEmpty          as NE
+
+import           Horbits.Dimensional.Prelude
 
 class Anomaly a where
     eccentricity :: a -> Dimensionless Double
