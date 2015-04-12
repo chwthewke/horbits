@@ -17,6 +17,7 @@ import           Horbits.UI.GL.GLBody
 import           Horbits.UI.GL.GLOrbit
 import           Horbits.UI.GL.GLSetup
 import           Horbits.UI.GL.GLTextures
+import           Horbits.UI.VisibilityToggle
 
 main :: IO ()
 main = do
@@ -32,19 +33,29 @@ layoutDisplay :: Window -> IO ()
 layoutDisplay window = do
     _ <- set window [ windowTitle := "Horbits" ]
     -- Actual layout
-    box <- hBoxNew True 5
-    containerAdd window box
-    containerAdd box =<< bodyDataPane
-    rBox <- vBoxNew False 5
-    containerAdd box rBox
+    -- Halp! Drowning in boxes
+    outerBox <- vBoxNew False 2
+    containerAdd window outerBox
+    mainBox <- hBoxNew False 2
+    containerAdd outerBox mainBox
+    (list, details) <- bodyDataPane
+    containerAdd mainBox list
+    containerAdd mainBox details
     (canvas, cam) <- setupGLWithCamera 600 600 $ initOrthoCamera (geometricZoom 1.2 (1e6, 1e12))
     onGtkGLInit canvas $ do
         bodyTex <- bodyTexture
         onGtkGLDraw canvas $ drawCanvas cam bodyTex
-    containerAdd rBox canvas
+    containerAdd mainBox canvas
+    buttonBox <- hBoxNew False 2
+    containerAdd outerBox buttonBox
+    buttonList <- visibilityToggleButton "Celestial Bodies" list
+    containerAdd buttonBox buttonList
+    buttonData <- visibilityToggleButton "Body Details" details
+    containerAdd buttonBox buttonData
 
 
-bodyDataPane :: IO VPaned
+
+bodyDataPane :: IO (ScrolledWindow, ScrolledWindow)
 bodyDataPane = do
     -- body list
     bodyList <- bodyListNew [bodiesTree]
@@ -60,11 +71,7 @@ bodyDataPane = do
     scrolledWindowAddWithViewport bodyDetailsScroll $ bodyDetailsPaneView bodyDetailsPane
     -- reacts to body selection
     _ <- bodyListOnSelectionChange bodyList (bodyDetailsPaneSetBody bodyDetailsPane)
-    -- Stack them in a VPaned
-    pane <- vPanedNew
-    panedAdd1 pane bodyListScroll
-    panedAdd2 pane bodyDetailsScroll
-    return pane
+    return (bodyListScroll, bodyDetailsScroll)
 
 
 planets :: [BodyId]

@@ -119,7 +119,7 @@ orbitalSection = DetailsSection (Just "Orbital Characteristics") (bodyId . bodyO
     , detailOf orbitArgumentOfPeriapsis & titled "Argument of periapsis" <&> showDegreeAngle
     , detailOf orbitRightAscensionOfAscendingNode & titled "Longitude of asc. node" <&> showDegreeAngle
     , detailOf orbitMeanAnomalyAtEpoch & titled "Mean anomaly at epoch" <&> showRadianAngle
-    , detailOf orbitPeriod & titled "Orbital period" <&> showKerbalTime
+    , detailOf orbitPeriod & titled "Orbital period" <&> showKerbalTimeSplit
     , detailOf orbitVelocity & titled "Orbital Velocity" <&> showOrbitalVelocity
     ]
 
@@ -128,13 +128,13 @@ physicalSection = DetailsSection (Just "Physical Characteristics") (to id)
     [ detailOf bodyRadius & titled "Equatorial radius" <&> showPlanetaryDistance
     , detailOf bodySurfaceArea & titled "Surface area" <&> showQuantitySciShort
     , detailOf bodyMass & titled "Mass" <&> showQuantitySciShort
-    , detailOf bodyGravitationalParam & titled "Gravitational parameter" <&> showQuantitySci
+    , detailOf bodyGravitationalParam & titled "Gravitational parameter" <&> showQuantitySciShort
     , detailOf bodyDensity & titled "Density" <&> showQuantityShort
     , detailOf bodySurfaceGravity & titled "Surface gravity" <&> showGravity
     , detailOf bodyEscapeVelocity & titled "Escape velocity" <&> showVelocity
-    , detailOf bodySiderealRotationPeriod & titled "Sidereal rotation period" <&> showKerbalTime
+    , detailOf bodySiderealRotationPeriod & titled "Sidereal rotation period" <&> showKerbalTimeSplit
     , detailOf bodySiderealRotationVelocity & titled "Sidereal rotation velocity" <&> showVelocity
-    , detailOf bodySolarDay & titled "Solar Day" <&> showKerbalTime
+    , detailOf bodySolarDay & titled "Solar Day" <&> showKerbalTimeSplit
     , detailOf bodySynchronousOrbitAltitude & titled "Synchronous orbit" <&> showOrbitalDistance
     , detailOf bodySphereOfInfluence & titled "Sphere of influence" <&> showOrbitalDistance
     ]

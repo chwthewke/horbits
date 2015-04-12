@@ -10,7 +10,7 @@
 module Horbits.UI.ShowDim
     (ShowDim, showUnit, showQuantityWith, showQuantity, showQuantityShort, showQuantitySci, showQuantitySciShort,
     showNth, showBodyPosition, showDegreeAngle, showRadianAngle, showVelocity, showGravity,
-    showKerbalTime, showOrbitalDistance, showPlanetaryDistance, showOrbitalVelocity)
+    showKerbalTime, showKerbalTimeSplit, showOrbitalDistance, showPlanetaryDistance, showOrbitalVelocity)
   where
 
 import           Control.Lens                hiding ((*~))
@@ -81,17 +81,26 @@ showGravity :: Acceleration Double -> String
 showGravity g = showQuantityShort g ++
     " (" ++ showQuantityShort (g / Kerbin ^. fromBodyId . bodySurfaceGravity) ++ " g)"
 
-showKerbalTime :: Time Double -> String
-showKerbalTime t =
-    [s|%s %.2f s (%.2f %s)|]
+_showKerbalTime :: Time Double -> (String, String)
+_showKerbalTime t =
+    ([s|%s %.2f s|]
         initText
         (fromIntegral (k ^. seconds) + k ^. secondsFraction)
+    , [s|(%.2f %s)|]
         q
-        u
+        u)
   where (q, u) = showUnit t
         k = t ^. from duration
         optionalParts = dropWhile ((== 0) . fst) $ zip (k ^. timeComponents . _2 . reversed) ["y", "d", "h", "m"]
         initText = unwords . fmap (uncurry [s|%d %s|]) $ optionalParts
+
+showKerbalTime :: Time Double -> String
+showKerbalTime t = t1 ++ " " ++ t2
+  where (t1, t2) = _showKerbalTime t
+
+showKerbalTimeSplit :: Time Double -> String
+showKerbalTimeSplit t = t1 ++ "\n" ++ t2
+  where (t1, t2) = _showKerbalTime t
 
 showOrbitalDistance :: Length Double -> String
 showOrbitalDistance = showQuantityWith [s|%.0f%s|]
