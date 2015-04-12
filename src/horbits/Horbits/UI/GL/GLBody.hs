@@ -1,4 +1,4 @@
-module Horbits.UI.GL.GLBody where
+module Horbits.UI.GL.GLBody(drawBodies) where
 
 import           Control.Lens
 import           Control.Monad
@@ -24,16 +24,19 @@ data DrawBodySpec = DrawBodySpec { drawZ        :: Double
 
 -- TODO better drawbodyspecs with SolarSystem
 drawBodySpec :: OrthoCamera Double -> KerbalInstant -> BodyId -> DrawBodySpec
-drawBodySpec cam i b = DrawBodySpec z (pos ^. glVector) c
+drawBodySpec cam time b = DrawBodySpec z (pos ^. glVector) c
   where
     z = orthoCameraZIndex cam pos
-    pos = fromMaybe zero $ b ^? bodyOrbit . to (`orbitPositionFromInstant` i) . to positionVector . from dim
+    pos = bodyPosition time b ^. from dim
     c = fromMaybe (Color4 1 1 0.7 1) $ b ^? bodyUiColor . to (set rgbaColorA 1) . glColorF
+
+drawBodies :: TextureObject -> OrthoCamera Double -> KerbalInstant -> [BodyId] -> IO ()
+drawBodies tex cam time = _drawBodies tex . fmap (drawBodySpec cam time)
 
 -- TODO really draw with different sizes
 -- (tricky, sort by Z then group by size, or just do n renderPrimitive calls)
-drawBodies :: TextureObject -> [DrawBodySpec] -> IO ()
-drawBodies tex dbs =
+_drawBodies :: TextureObject -> [DrawBodySpec] -> IO ()
+_drawBodies tex dbs =
     withStateVar (texture Texture2D) Enabled .
     withStateVar (textureBinding Texture2D) (Just tex) .
     withStateVar blend Enabled .

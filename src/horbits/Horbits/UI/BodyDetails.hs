@@ -106,7 +106,7 @@ bodyDetailsPaneNew = bodyDetailsSections detailsSections
 headerSection :: DetailsSection
 headerSection = DetailsSection Nothing (to id)
     [ detailOf bodyName
-    , detailOf bodyId <&> bodyPosition <&> showBodyPosition
+    , detailOf bodyId <&> bodyLevel <&> showBodyLevel
     ]
 
 orbitalSection :: DetailsSection

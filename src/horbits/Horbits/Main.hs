@@ -1,13 +1,9 @@
 module Horbits.Main(main) where
 
-import           Control.Applicative
-import           Control.Lens                 hiding (set)
-import           Data.Tree
 import           Data.Variable
 import           Graphics.Rendering.OpenGL.GL as GL
 import           Graphics.UI.Gtk
 
-import           Horbits.Body
 import           Horbits.KerbalDateTime
 import           Horbits.SolarSystem
 import           Horbits.UI.BodyDetails
@@ -74,14 +70,14 @@ bodyDataPane = do
     return (bodyListScroll, bodyDetailsScroll)
 
 
-planets :: [BodyId]
-planets = map (view bodyId . rootLabel) . subForest $ bodiesTree
+--planets :: [BodyId]
+--planets = map (view bodyId . rootLabel) . subForest $ bodiesTree
 
 drawCanvas :: Variable v => v (OrthoCamera Double) -> TextureObject -> IO ()
 drawCanvas camera t = do
     cam <- readVar camera
-    drawOrbits planets
-    drawBodies t (toGlBody cam <$> Sun : planets)
+    drawOrbits epoch bodyIds
+    drawBodies t cam epoch bodyIds
     GL.flush
-  where toGlBody cam = drawBodySpec cam epoch
-
+  where
+    bodyIds = [minBound..]

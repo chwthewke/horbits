@@ -16,13 +16,7 @@ import           Horbits.Dimensional.Prelude
 import           Horbits.Types
 -- Definitions and classes
 
---data VectorOrbit = VectorOrbit { _orbitBodyId             :: BodyId
---                               , _orbitAngularMomentum    :: SpecificAngularMomentum (V3 Double)
---                               , _orbitEccentricityVector :: Dimensionless (V3 Double)
---                               , _orbitMeanAnomalyAtEpoch :: Dimensionless Double
---                               } deriving (Show, Eq)
-
---makeClassy ''VectorOrbit
+-- TODO name orbitBodyId differently (parent? focusBody?)
 
 data Orbit = Orbit { _orbitBodyId                        :: BodyId
                    , _orbitSemiMajorAxis                 :: Length Double

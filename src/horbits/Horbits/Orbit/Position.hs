@@ -2,7 +2,7 @@
 {-# LANGUAGE TemplateHaskell   #-}
 
 module Horbits.Orbit.Position
-    (OrbitPosition,
+    (OrbitPosition, bodyPosition,
     positionOrbit, positionDateTime, positionMeanAnomaly, positionEccentricAnomaly, positionTrueAnomaly,
     positionVector,
     eccentricToMeanAnomaly, meanToEccentricAnomaly,
@@ -17,9 +17,11 @@ import           Control.Lens                hiding ((*~), _1, _2)
 import           Control.Monad
 import           Data.List.NonEmpty          as NE
 
+import           Horbits.Body
 import           Horbits.Dimensional.Prelude
 import           Horbits.KerbalDateTime
 import           Horbits.Orbit.Class
+import           Horbits.Orbit.Data
 import           Horbits.Orbit.Geometry
 import           Horbits.Orbit.Properties
 
@@ -114,3 +116,9 @@ orbitPositionFromTrueAnomaly orbit ta n = OrbitPosition orbit instant ma ea ta p
     ea = trueToEccentricAnomaly orbit ta
     ma = eccentricToMeanAnomaly orbit ea
     instant = instantFromMeanAnomalyAndRevs orbit ma n
+
+bodyPosition :: KerbalInstant -> BodyId -> Length (V3 Double)
+bodyPosition t b = maybe dimZero orbitPosition (b ^? bodyOrbit)
+  where
+    orbitPosition o = positionVector (orbitPositionFromInstant o t) ^+^ bodyPosition t (o ^. orbitBody . bodyId)
+

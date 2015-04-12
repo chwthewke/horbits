@@ -9,7 +9,7 @@
 
 module Horbits.UI.ShowDim
     (ShowDim, showUnit, showQuantityWith, showQuantity, showQuantityShort, showQuantitySci, showQuantitySciShort,
-    showNth, showBodyPosition, showDegreeAngle, showRadianAngle, showVelocity, showGravity,
+    showNth, showBodyLevel, showDegreeAngle, showRadianAngle, showVelocity, showGravity,
     showKerbalTime, showKerbalTimeSplit, showOrbitalDistance, showPlanetaryDistance, showOrbitalVelocity)
   where
 
@@ -57,10 +57,10 @@ showQuantitySciShort = translateExponent . showQuantityWith [s|%.3e%s|]
 
 -- Shows for our quantities and other data types
 
-showBodyPosition :: BodyPosition -> String
-showBodyPosition (Star _) = "Star"
-showBodyPosition (Planet i p _) = showNth i ++ " planet of " ++ p ^. fromBodyId . bodyName
-showBodyPosition (Moon i p _) = showNth i ++ " moon of " ++ p ^. fromBodyId . bodyName
+showBodyLevel :: BodyLevel -> String
+showBodyLevel (Star _) = "Star"
+showBodyLevel (Planet i p _) = showNth i ++ " planet of " ++ p ^. fromBodyId . bodyName
+showBodyLevel (Moon i p _) = showNth i ++ " moon of " ++ p ^. fromBodyId . bodyName
 
 showNth :: (Integral a, Show a) => a -> String
 showNth x | x `mod` 10 == 1 && x `mod` 100 /= 11 = [s|%dst|] x

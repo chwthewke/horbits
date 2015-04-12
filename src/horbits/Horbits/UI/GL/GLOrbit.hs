@@ -11,18 +11,21 @@ import           Linear
 import           Horbits.Body
 import           Horbits.Data.StateVar
 import           Horbits.Dimensional.Prelude   (dim)
+import           Horbits.KerbalDateTime
 import           Horbits.Orbit
 import           Horbits.UI.GL.GLIso
 
-drawOrbits :: [BodyId] -> IO ()
-drawOrbits = withStateVar lineSmooth Enabled . mapM_ drawOrbit
+drawOrbits :: KerbalInstant -> [BodyId] -> IO ()
+drawOrbits = (withStateVar lineSmooth Enabled .) . mapM_ . drawOrbit
 
-drawOrbit :: BodyId -> IO ()
-drawOrbit body = forM_ (colorAndOrbit body) $ \(col, orbit) -> do
+drawOrbit :: KerbalInstant -> BodyId -> IO ()
+drawOrbit time body = forM_ (colorAndOrbit body) $ \(col, orbit) -> do
     let o = orbit ^. orbitCenter . from dim
+    let f = bodyPosition time $ orbit ^. orbitBodyId
+    let c = o ^+^ f ^. from dim
     let a = orbit ^. orbitSemiMajorAxisVector . from dim
     let b = orbit ^. orbitSemiMinorAxisVector . from dim
-    drawEllipse3d col o a b
+    drawEllipse3d col c a b
 
 colorAndOrbit :: BodyId -> Maybe (RgbaColor Float, Orbit)
 colorAndOrbit b = (,) <$> b ^? bodyUiColor <*> b ^? bodyOrbit
