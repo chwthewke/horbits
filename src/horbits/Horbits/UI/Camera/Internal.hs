@@ -34,7 +34,7 @@ invOrthoCameraMatrix :: (RealFloat a, Epsilon a) => OrthoCamera a -> M44 a
 invOrthoCameraMatrix cam = invTranslate cam !*! invRotateLong cam !*! invRotateColat cam !*! invScale cam
 
 orthoCameraZIndex :: (RealFloat a, Epsilon a) => OrthoCamera a -> V3 a -> a
-orthoCameraZIndex c = dot (orthoCameraMatrix c ^. _z . _xyz)
+orthoCameraZIndex c = negate . dot (orthoCameraMatrix c ^. _z . _xyz)
 
 
 -- update API

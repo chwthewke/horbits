@@ -112,7 +112,7 @@ drawSprites cam tex ps =
                 vertex v
             glDisable gl_POINT_SPRITE_ARB
   where
-    sortPoints = sortBy (comparing (negate . zIdx . fst))
+    sortPoints = sortBy (comparing (zIdx . fst))
     zIdx v = orthoCameraZIndex cam (v ^. from glV3) 
 
 
