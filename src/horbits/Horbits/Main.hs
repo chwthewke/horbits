@@ -6,18 +6,23 @@ import           Control.Applicative
 import           Control.Lens                 hiding (set)
 import           Data.Foldable                (forM_)
 import           Data.Tree
+import           Data.Variable
 import           Graphics.Rendering.OpenGL.GL as GL
 import           Graphics.UI.Gtk
 import           Numeric.Units.Dimensional.TF (Dimensional (Dimensional))
 
 import           Horbits.Body
+import           Horbits.Data.StateVar
+import           Horbits.KerbalDateTime
 import           Horbits.Orbit
 import           Horbits.SolarSystem
 import           Horbits.UI.BodyDetails
 import           Horbits.UI.BodyList
 import           Horbits.UI.Camera
+import           Horbits.UI.GL.GLBody
 import           Horbits.UI.GL.GLOrbit
 import           Horbits.UI.GL.GLSetup
+import           Horbits.UI.GL.GLTextures
 
 main :: IO ()
 main = do
@@ -31,15 +36,17 @@ main = do
 
 layoutDisplay :: Window -> IO ()
 layoutDisplay window = do
-    _ <- set window [ windowTitle := "Hello" ]
+    _ <- set window [ windowTitle := "Horbits" ]
     -- Actual layout
     box <- hBoxNew True 5
     containerAdd window box
     containerAdd box =<< bodyDataPane
     rBox <- vBoxNew False 5
     containerAdd box rBox
-    (canvas, _) <- setupGLWithCamera 600 600 $ initOrthoCamera (geometricZoom 1.2 (1e6, 1e12))
-    onGtkGLInit canvas $ onGtkGLDraw canvas drawCanvas
+    (canvas, cam) <- setupGLWithCamera 600 600 $ initOrthoCamera (geometricZoom 1.2 (1e6, 1e12))
+    onGtkGLInit canvas $ do
+        bodyTex <- bodyTexture
+        onGtkGLDraw canvas $ drawCanvas cam bodyTex
     containerAdd rBox canvas
 
 
@@ -82,8 +89,12 @@ planetOrbits = planets >>= getOrbit
   where
     getOrbit bId = (,) <$> (bId ^.. bodyUiColor) <*> (bId ^.. bodyOrbit)
 
-drawCanvas :: IO ()
-drawCanvas = do
-    forM_ planetOrbits (uncurry drawPlanetOrbit)
+drawCanvas :: Variable v => v (OrthoCamera Double) -> TextureObject -> IO ()
+drawCanvas camera t = do
+    cam <- readVar camera
+    withStateVar lineSmooth Enabled $
+        forM_ planetOrbits (uncurry drawPlanetOrbit)
+    drawBodies t (toGlBody cam <$> Sun : planets)
     GL.flush
+  where toGlBody cam = drawBodySpec cam epoch
 

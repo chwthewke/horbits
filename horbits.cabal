@@ -59,6 +59,7 @@ executable horbits
                    Horbits.UI.Camera.Control,
                    Horbits.UI.Camera.Internal,
                    Horbits.UI.Camera.Zoom,
+                   Horbits.UI.GL.GLBody,
                    Horbits.UI.GL.GLCamera,
                    Horbits.UI.GL.GLIso,
                    Horbits.UI.GL.GLOrbit,
