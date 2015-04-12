@@ -14,11 +14,15 @@ bodyUiColor = to getColor . traverse
 
 -- Data
 getBody :: BodyId -> Body
-getBody bId = Body bId (show bId) mu r t soi atm
+getBody bId = Body bId (_bodyName bId) mu r t soi atm
   where
     soi = getSphereOfInfluence bId
     (r, t, mu) = getPhysicalAttrs bId
     atm = getAtmosphere bId
+
+_bodyName :: BodyId -> String
+_bodyName Sun = "Kerbol"
+_bodyName b = show b
 
 
 fromBodyId :: Getter BodyId Body
