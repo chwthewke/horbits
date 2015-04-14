@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE Rank2Types #-}
 
 module Horbits.UI.GL.GLSetup(setupGLWithCamera, onGtkGLInit, onGtkGLDraw) where
@@ -5,23 +6,22 @@ module Horbits.UI.GL.GLSetup(setupGLWithCamera, onGtkGLInit, onGtkGLDraw) where
 import           Control.Lens
 import           Control.Monad
 import           Control.Monad.IO.Class
-import           Data.Binding.Simple
 import           Graphics.Rendering.OpenGL
 import           Graphics.UI.Gtk
 import           Graphics.UI.Gtk.OpenGL
 
-import           Horbits.Data.Variable.State
+import Horbits.Data.Binding
 import           Horbits.UI.Camera
 import           Horbits.UI.GL.GLCamera
 
 -- | Setup a GL canvas with mouse-controlled ortho camera
-setupGLWithCamera :: Bindable v
+setupGLWithCamera :: (HasBinding v (OrthoCamera Double))
                   => Int -- ^ Initial width request
                   -> Int -- ^ Initial height request
-                  -> v (OrthoCamera Double) -- ^ camera source
+                  -> v -- ^ camera source
                   -> IO GLDrawingArea
 setupGLWithCamera width height camera = do
-    runStateVar camera $ do
+    evalStateVar camera $ do
         orthoCameraViewportWidth .= width
         orthoCameraViewportHeight .= height
     canvas <- glDrawingAreaNew =<< glConfigNew [GLModeRGBA, GLModeDepth, GLModeDouble]

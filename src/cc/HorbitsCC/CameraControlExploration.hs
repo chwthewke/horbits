@@ -1,19 +1,20 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE Rank2Types #-}
 
 module HorbitsCC.CameraControlExploration(basesAndCameraControls, ZoomModel(..), linearZoom, geometricZoom) where
 
 import           Control.Lens
 import           Control.Monad             hiding (forM_, mapM_)
 import           Control.Monad.IO.Class
-import           Data.Binding.Simple
 import           Data.Foldable
-import           Data.IORef
 import           Graphics.Rendering.OpenGL
 import           Graphics.UI.Gtk           hiding (set)
 import           Linear
 import           Prelude                   hiding (foldr, mapM_)
 import           Text.Printf.TH
 
+import           Horbits.Data.Binding
 import           Horbits.UI.Camera
 import           Horbits.UI.GL.GLSetup
 
@@ -65,7 +66,7 @@ orthoCameraLongitudeDeg = orthoCameraLongitude . degrees
 
 basesAndCameraControls :: Window -> IO ()
 basesAndCameraControls window = do
-    cam <- newVar $ initOrthoCamera (linearZoom 1 (1, 20)) :: IO (Source IORef (OrthoCamera Double))
+    cam <- newVar $ initOrthoCamera (linearZoom 1 (1, 20)) :: IO (IORefBindingSource (OrthoCamera Double))
     canvas <- setupGLWithCamera 600 600 cam
     onGtkGLInit canvas $ onGtkGLDraw canvas drawBases
     box <- hBoxNew False 5
@@ -84,18 +85,18 @@ basesAndCameraControls window = do
         "k" <- eventKeyName
         liftIO $ logCamera cam
 
-boundSpinButton :: (Variable v) =>
-                    v t -> ASetter' t Double -> String -> Double -> Double -> Double -> Maybe Double -> IO HBox
+boundSpinButton :: (HasUpdate v t t) =>
+                    v -> Setter' t Double -> String -> Double -> Double -> Double -> Maybe Double -> IO HBox
 boundSpinButton src prop lab min' max' step def = do
     box <- hBoxNew True 5
     spb <- spinButtonNewWithRange min' max' step
     forM_ def $ spinButtonSetValue spb
-    _ <- onValueSpinned spb $ spinButtonGetValue spb >>= (modifyVar src . set prop)
+    _ <- onValueSpinned spb $ spinButtonGetValue spb >>= (mapVarS prop src $=)
     _ <- labelNew (Just lab) >>= containerAdd box
     containerAdd box spb
     return box
 
-logCamera :: (Variable v, Show a, RealFloat a, Epsilon a) => v (OrthoCamera a) -> IO ()
+logCamera :: (HasGetter v (OrthoCamera a), Show a, RealFloat a, Epsilon a) => v -> IO ()
 logCamera cam = do
     c <- readVar cam
     putStrLn $ [s|O: %.2f %.2f %.2f|] (c ^. orthoCameraCenter . _x)

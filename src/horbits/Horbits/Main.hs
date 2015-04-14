@@ -1,7 +1,5 @@
 module Horbits.Main(main) where
 
-import           Data.Binding.Simple
-import           Data.IORef
 import           Graphics.UI.Gtk
 
 import           Horbits.UI.Model
@@ -11,7 +9,7 @@ main :: IO ()
 main = do
     _ <- initGUI
     window <- windowNew
-    model <- uiModelNew :: IO (Source IORef UIModel)
+    model <- uiModelNew
     mainLayout model window
     --
     widgetShowAll window

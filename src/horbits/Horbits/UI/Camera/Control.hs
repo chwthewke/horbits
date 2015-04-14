@@ -1,14 +1,14 @@
+{-# LANGUAGE FlexibleContexts #-}
+
 module Horbits.UI.Camera.Control (setupMouseControl) where
 
 import           Control.Lens
-import           Control.Monad.IO.Class
 import           Control.Monad.Trans.State
 import           Data.IORef
-import           Data.Variable
 import           Graphics.UI.Gtk
 import           Linear
 
-import           Horbits.Data.Variable.State
+import           Horbits.Data.Binding
 import           Horbits.UI.Camera.Internal
 
 -- Ongoing mouse state
@@ -37,27 +37,33 @@ mouseScroll dir = do
 
 -- Mouse event processing
 
-onButtonEvent :: (Variable v) => (MouseButton -> [MouseButton] -> [MouseButton]) -> v MState -> EventM EButton ()
+-- TODO map MState with lens?
+onButtonEvent :: (HasUpdate v MState MState)
+              => (MouseButton -> [MouseButton] -> [MouseButton]) -> v -> EventM EButton ()
 onButtonEvent f st = do
     button <- eventButton
     coords <- eventCoordinates
-    liftIO $ modifyVar st $ newState coords button -- TODO ??? zoom or sth
+    st $~ newState coords button -- TODO ??? zoom or sth
   where
     newState c b (MState bs _) = MState (f b bs) c
 
 
-onMouseMove :: (Variable v1, Variable v2, RealFloat a, Epsilon a) =>
-               v1 (OrthoCamera a) -> v2 MState -> EventM t (Double, Double) -> EventM t ()
+onMouseMove :: (HasGetter vs MState, HasSetter vs MState, 
+                HasGetter vc (OrthoCamera a), HasSetter vc (OrthoCamera a),
+                RealFloat a, Epsilon a) =>
+               vc -> vs -> EventM t (Double, Double) -> EventM t ()
 onMouseMove cam st evCoords = do
     (coords @ (cx, cy)) <- evCoords
-    MState buttons (sx, sy) <- liftIO $ readVar st
-    liftIO $ writeVar st (MState buttons coords) -- TODO MState manipulation is weak, see above, also <<%= (!)
-    runStateVar cam $ case buttons of
+    MState buttons (sx, sy) <- readVar st
+    st $= MState buttons coords -- TODO MState manipulation is weak, see above, also <<%= (!)
+    evalStateVar cam $ case buttons of
                         LeftButton : _ -> mousePan (cx - sx, sy - cy)
                         RightButton : _ -> mouseRotate (cx - sx, sy - cy)
                         _ -> return ()
 
-setupMouseControl :: (WidgetClass w, Variable v, RealFloat a, Epsilon a) => w -> v (OrthoCamera a) -> IO [ConnectId w]
+setupMouseControl :: (HasGetter v (OrthoCamera a), HasSetter v (OrthoCamera a), 
+                      WidgetClass w, RealFloat a, Epsilon a) 
+                  => w -> v -> IO [ConnectId w]
 setupMouseControl w cam = do
     st <- newVar (MState [] (0.0, 0.0)) :: IO (IORef MState)
     widgetAddEvents w [PointerMotionHintMask, Button1MotionMask, Button3MotionMask]
@@ -71,6 +77,6 @@ setupMouseControl w cam = do
             onButtonEvent (\b bs -> filter (/= b) bs) st,
         on w scrollEvent $ tryEvent $ do
             d <- eventScrollDirection
-            runStateVar cam $ mouseScroll d
+            evalStateVar cam $ mouseScroll d
         ]
 

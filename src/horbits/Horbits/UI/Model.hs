@@ -3,9 +3,9 @@
 module Horbits.UI.Model where
 
 import           Control.Lens
-import           Data.Binding.Simple
 
 import           Horbits.Body
+import           Horbits.Data.Binding
 import           Horbits.KerbalDateTime
 import           Horbits.UI.Camera
 
@@ -16,7 +16,8 @@ data UIModel = UIModel { _modelCamera       :: OrthoCamera Double
 
 makeLenses ''UIModel
 
-uiModelNew :: Variable v => IO (Source v UIModel)
-uiModelNew = newVar $ UIModel (initOrthoCamera (geometricZoom 1.2 (1e6, 1e12)))
-                              Nothing
-                              epoch
+-- TODO type synonym in Data.Binding?
+
+uiModelNew :: IO (IORefBindingSource UIModel)
+uiModelNew = newVar $ UIModel (initOrthoCamera (geometricZoom 1.2 (1e6, 1e12))) Nothing epoch
+

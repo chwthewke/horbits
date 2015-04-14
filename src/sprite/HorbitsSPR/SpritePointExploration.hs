@@ -1,15 +1,13 @@
 module HorbitsSPR.SpritePointExploration where
 
-import           Control.Monad
-import           Control.Monad.IO.Class
 import           Control.Lens
-import           Data.Binding.Simple
+import           Control.Monad
 import           Data.List
-import           Data.IORef
 import           Data.Ord
 import           Graphics.Rendering.OpenGL     as GL
 import           Graphics.UI.Gtk
 
+import           Horbits.Data.Binding
 import           Horbits.OpenGL.PointSpriteARB
 import           Horbits.UI.Camera
 import           Horbits.UI.GL.GLIso
@@ -20,21 +18,12 @@ import           Horbits.UI.GL.GLTextures
 
 spritePointWindow :: Window -> IO ()
 spritePointWindow window = do
-    cam <- newVar $ initOrthoCamera (linearZoom 1 (1, 20)) :: IO (Source IORef (OrthoCamera Double))
+    cam <- newVar $ initOrthoCamera (linearZoom 1 (1, 20)) :: IO (IORefBindingSource (OrthoCamera Double))
     canvas <- setupGLWithCamera 600 600 cam
     onGtkGLInit canvas $ do
         tex <- bodyTexture
         onGtkGLDraw canvas $ readVar cam >>= flip draw tex
     containerAdd window canvas
-
-
-withStateVar :: (HasGetter s a, HasSetter s a, MonadIO m) => s -> a -> m b -> m b
-withStateVar st a b = do
-    old <- liftIO $ GL.get st
-    liftIO $ st $= a
-    r <- b
-    liftIO $ st $= old
-    return r
 
 
 draw :: OrthoCamera Double -> TextureObject -> IO ()
@@ -72,7 +61,7 @@ drawSimplex (Vertex4 x y z w) =
 
 
 drawSprites :: OrthoCamera Double -> TextureObject -> [(Vertex3 GLdouble, Color3 GLdouble)] -> IO ()
-drawSprites cam tex ps = 
+drawSprites cam tex ps =
     withStateVar (texture Texture2D) Enabled .
     withStateVar (textureBinding Texture2D) (Just tex) .
     withStateVar blend Enabled .
@@ -80,13 +69,13 @@ drawSprites cam tex ps =
     withStateVar depthFunc (Just Lequal) .
     withStateVar pointSpriteARB Enabled .
     -- TODO lots of parameters (point_fade_threshold, point_distance_attenuation, others?)
-    withStateVar pointSize 64 $ 
+    withStateVar pointSize 64 $
         renderPrimitive Points $ forM_ (sortPoints ps) $ \(v, c) -> do
             color c
             vertex v
   where
     sortPoints = sortBy (comparing (zIdx . fst))
-    zIdx v = orthoCameraZIndex cam (v ^. from glV3) 
+    zIdx v = orthoCameraZIndex cam (v ^. from glV3)
 
 
 

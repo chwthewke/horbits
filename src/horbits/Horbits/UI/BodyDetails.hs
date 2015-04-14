@@ -1,4 +1,5 @@
 {-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances         #-}
 {-# LANGUAGE NoImplicitPrelude         #-}
 {-# LANGUAGE Rank2Types                #-}
@@ -10,10 +11,10 @@ import           Control.Applicative
 import           Control.Lens                         hiding ((*~))
 import           Control.Monad                        hiding (ap, forM_, mapM_, sequence_)
 import           Data.Foldable
-import           Data.Binding.Simple
 import           Graphics.UI.Gtk                      as Gtk
 
 import           Horbits.Body
+import           Horbits.Data.Binding
 import           Horbits.Dimensional.Prelude hiding (mapM_, sequence_)
 import           Horbits.Orbit
 import           Horbits.SolarSystem
@@ -55,11 +56,11 @@ bodyDetailLabelNew (Detail name def prop) = do
     valueLabel <- labelNew Nothing
     _ <- containerAdd hb valueLabel
     -- label update
-    let update mv = do
+    let updateLabel mv = do
         forM_ mv $ labelSetMarkup valueLabel
         Gtk.set hb [ widgetVisible := has _Just mv ]
-    _ <- update def
-    return $ BodyDetailLabel hb (update . preview prop)
+    _ <- updateLabel def
+    return $ BodyDetailLabel hb (updateLabel . preview prop)
 
 
 -- Section
@@ -89,8 +90,8 @@ data BodyDetails = BodyDetails { bodyDetailsView    :: ScrolledWindow
                                , bodyDetailsSetBody :: Body -> IO ()
                                }
 
-bodyDetailsSections :: Bindable v 
-                    => v (Maybe Body) -> [DetailsSection] -> (PolicyType, PolicyType) -> IO ScrolledWindow
+bodyDetailsSections :: Bindable v (Maybe Body)
+                    => v -> [DetailsSection] -> (PolicyType, PolicyType) -> IO ScrolledWindow
 bodyDetailsSections selectedBody sections (hp, vp) = do
     bodyDetails <- vBoxNew False 5
     detailsWidgets <- forM sections bodyDetailsSectionNew
@@ -99,10 +100,10 @@ bodyDetailsSections selectedBody sections (hp, vp) = do
     scrolledWindowSetPolicy bodyDetailsScroll hp vp
     scrolledWindowAddWithViewport bodyDetailsScroll bodyDetails
     let setBody = forM_ detailsWidgets . flip bodyDetailsSectionSetBody
-    bind selectedBody id () . const $ mapM_ setBody
+    bindEq selectedBody $ mapM_ setBody
     return bodyDetailsScroll
 
-bodyDetailsNew :: Bindable v => v (Maybe Body) -> (PolicyType, PolicyType) -> IO ScrolledWindow
+bodyDetailsNew :: Bindable v (Maybe Body) => v -> (PolicyType, PolicyType) -> IO ScrolledWindow
 bodyDetailsNew = flip bodyDetailsSections detailsSections
 
 -- Actual content

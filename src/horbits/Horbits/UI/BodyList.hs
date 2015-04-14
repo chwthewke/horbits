@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleContexts #-}
+
 module Horbits.UI.BodyList
     (BodyList(BodyList), BodyListSelectionChange,
      bodyListNew, bodyListView, bodyListModel)
@@ -6,10 +8,10 @@ module Horbits.UI.BodyList
 import           Control.Lens
 import           Control.Monad
 import           Data.Tree
-import           Data.Variable
 import           Graphics.UI.Gtk
 
 import           Horbits.Body
+import           Horbits.Data.Binding
 
 type BodyListSelectionChange = (Maybe Body -> IO ()) -> IO (ConnectId TreeView)
 
@@ -18,8 +20,8 @@ data BodyList = BodyList { bodyListView  :: ScrolledWindow
                          }
 
 
-bodyListNew :: Variable v
-            => v (Maybe Body)
+bodyListNew :: HasSetter v (Maybe Body)
+            => v
             -> Forest Body
             -> (PolicyType, PolicyType)
             -> IO BodyList
@@ -34,7 +36,7 @@ bodyListNew selectedBody bs (hp, vp) = do
     bodyListScroll <- scrolledWindowNew Nothing Nothing
     scrolledWindowSetPolicy bodyListScroll hp vp
     containerAdd bodyListScroll tree
-    void $ onBodyListSelectionChange tree model $ writeVar selectedBody
+    void $ onBodyListSelectionChange tree model (selectedBody $=)
     return $ BodyList bodyListScroll model
 
 textColumn :: (TypedTreeModelClass m, TreeModelClass (m b)) =>
