@@ -5,6 +5,7 @@ import           Control.Monad.IO.Class
 import           Control.Lens
 import           Data.Binding.Simple
 import           Data.List
+import           Data.IORef
 import           Data.Ord
 import           Graphics.Rendering.OpenGL     as GL
 import           Graphics.UI.Gtk
@@ -19,7 +20,8 @@ import           Horbits.UI.GL.GLTextures
 
 spritePointWindow :: Window -> IO ()
 spritePointWindow window = do
-    (canvas, cam) <- setupGLWithCamera 600 600 $ initOrthoCamera (linearZoom 1 (1, 20))
+    cam <- newVar $ initOrthoCamera (linearZoom 1 (1, 20)) :: IO (Source IORef (OrthoCamera Double))
+    canvas <- setupGLWithCamera 600 600 cam
     onGtkGLInit canvas $ do
         tex <- bodyTexture
         onGtkGLDraw canvas $ readVar cam >>= flip draw tex

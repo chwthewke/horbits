@@ -10,6 +10,7 @@ import           Control.Applicative
 import           Control.Lens                         hiding ((*~))
 import           Control.Monad                        hiding (ap, forM_, mapM_, sequence_)
 import           Data.Foldable
+import           Data.Binding.Simple
 import           Graphics.UI.Gtk                      as Gtk
 
 import           Horbits.Body
@@ -88,19 +89,21 @@ data BodyDetails = BodyDetails { bodyDetailsView    :: ScrolledWindow
                                , bodyDetailsSetBody :: Body -> IO ()
                                }
 
-bodyDetailsSections :: [DetailsSection] -> (PolicyType, PolicyType) -> IO BodyDetails
-bodyDetailsSections sections (hp, vp) = do
+bodyDetailsSections :: Bindable v 
+                    => v (Maybe Body) -> [DetailsSection] -> (PolicyType, PolicyType) -> IO ScrolledWindow
+bodyDetailsSections selectedBody sections (hp, vp) = do
     bodyDetails <- vBoxNew False 5
     detailsWidgets <- forM sections bodyDetailsSectionNew
     forM_ detailsWidgets (containerAdd bodyDetails . bodyDetailsSectionView)
-    let setBody = forM_ detailsWidgets . flip bodyDetailsSectionSetBody
     bodyDetailsScroll <- scrolledWindowNew Nothing Nothing
     scrolledWindowSetPolicy bodyDetailsScroll hp vp
     scrolledWindowAddWithViewport bodyDetailsScroll bodyDetails
-    return $ BodyDetails bodyDetailsScroll setBody
+    let setBody = forM_ detailsWidgets . flip bodyDetailsSectionSetBody
+    bind selectedBody id () . const $ mapM_ setBody
+    return bodyDetailsScroll
 
-bodyDetailsNew :: (PolicyType, PolicyType) -> IO BodyDetails
-bodyDetailsNew = bodyDetailsSections detailsSections
+bodyDetailsNew :: Bindable v => v (Maybe Body) -> (PolicyType, PolicyType) -> IO ScrolledWindow
+bodyDetailsNew = flip bodyDetailsSections detailsSections
 
 -- Actual content
 --

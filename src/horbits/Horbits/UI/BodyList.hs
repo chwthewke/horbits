@@ -1,25 +1,29 @@
 module Horbits.UI.BodyList
     (BodyList(BodyList), BodyListSelectionChange,
-     bodyListNew, bodyListView, bodyListModel, bodyListOnSelectionChange)
+     bodyListNew, bodyListView, bodyListModel)
   where
 
 import           Control.Lens
 import           Control.Monad
 import           Data.Tree
+import           Data.Variable
 import           Graphics.UI.Gtk
 
 import           Horbits.Body
 
 type BodyListSelectionChange = (Maybe Body -> IO ()) -> IO (ConnectId TreeView)
 
-data BodyList = BodyList { bodyListView              :: ScrolledWindow
-                         , bodyListModel             :: TreeStore Body
-                         , bodyListOnSelectionChange :: BodyListSelectionChange
+data BodyList = BodyList { bodyListView  :: ScrolledWindow
+                         , bodyListModel :: TreeStore Body
                          }
 
 
-bodyListNew :: Forest Body -> (PolicyType, PolicyType) -> IO BodyList
-bodyListNew bs (hp, vp) = do
+bodyListNew :: Variable v
+            => v (Maybe Body)
+            -> Forest Body
+            -> (PolicyType, PolicyType)
+            -> IO BodyList
+bodyListNew selectedBody bs (hp, vp) = do
     model <- treeStoreNew bs
     tree <- treeViewNewWithModel model
     treeViewGetSelection tree >>= flip treeSelectionSetMode SelectionSingle
@@ -30,7 +34,8 @@ bodyListNew bs (hp, vp) = do
     bodyListScroll <- scrolledWindowNew Nothing Nothing
     scrolledWindowSetPolicy bodyListScroll hp vp
     containerAdd bodyListScroll tree
-    return $ BodyList bodyListScroll model (onBodyListSelectionChange tree model)
+    void $ onBodyListSelectionChange tree model $ writeVar selectedBody
+    return $ BodyList bodyListScroll model
 
 textColumn :: (TypedTreeModelClass m, TreeModelClass (m b)) =>
     m b -> (b -> String) -> IO (TreeViewColumn, CellRendererText)

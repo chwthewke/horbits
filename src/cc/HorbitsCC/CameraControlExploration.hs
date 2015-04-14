@@ -7,6 +7,7 @@ import           Control.Monad             hiding (forM_, mapM_)
 import           Control.Monad.IO.Class
 import           Data.Binding.Simple
 import           Data.Foldable
+import           Data.IORef
 import           Graphics.Rendering.OpenGL
 import           Graphics.UI.Gtk           hiding (set)
 import           Linear
@@ -64,7 +65,8 @@ orthoCameraLongitudeDeg = orthoCameraLongitude . degrees
 
 basesAndCameraControls :: Window -> IO ()
 basesAndCameraControls window = do
-    (canvas, cam) <- setupGLWithCamera 600 600 $ initOrthoCamera (linearZoom 1 (1, 20))
+    cam <- newVar $ initOrthoCamera (linearZoom 1 (1, 20)) :: IO (Source IORef (OrthoCamera Double))
+    canvas <- setupGLWithCamera 600 600 cam
     onGtkGLInit canvas $ onGtkGLDraw canvas drawBases
     box <- hBoxNew False 5
     ctrlBox <- vBoxNew True 5

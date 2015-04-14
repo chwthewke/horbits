@@ -1,16 +1,17 @@
 module Horbits.UI.UIMain where
 
-import           Control.Lens                hiding (set)
-import           Control.Monad               (void)
+import           Control.Applicative
+import           Control.Lens                 hiding (set)
 import           Data.Binding.Simple
 import           Data.Foldable
-import           Graphics.Rendering.OpenGL   as GL
+import           Graphics.Rendering.OpenGL    as GL
 import           Graphics.UI.Gtk
 import           Graphics.UI.Gtk.OpenGL
-import           Prelude                     hiding (mapM_)
+import           Prelude                      hiding (mapM_)
 
 import           Horbits.Body
-import           Horbits.Dimensional.Prelude (dim)
+import           Horbits.Data.Variable.Mapped
+import           Horbits.Dimensional.Prelude  (dim)
 import           Horbits.KerbalDateTime
 import           Horbits.Orbit
 import           Horbits.SolarSystem
@@ -21,40 +22,39 @@ import           Horbits.UI.GL.GLBody
 import           Horbits.UI.GL.GLOrbit
 import           Horbits.UI.GL.GLSetup
 import           Horbits.UI.GL.GLTextures
+import           Horbits.UI.Model
 import           Horbits.UI.VisibilityToggle
 
-orbitsCanvas :: BodyList -> IO GLDrawingArea
-orbitsCanvas (BodyList _ _ onBodySelection) = do
-    (canvas, cam) <- setupGLWithCamera 600 600 $ initOrthoCamera (geometricZoom 1.2 (1e6, 1e12))
+orbitsCanvas :: Bindable v => v UIModel -> IO GLDrawingArea
+orbitsCanvas model = do
+    let cam = mapVariable modelCamera model
+    canvas <- setupGLWithCamera 600 600 cam
     onGtkGLInit canvas $ do
         bodyTex <- bodyTexture
         onGtkGLDraw canvas $ drawCanvas cam bodyTex
-    void $ onBodySelection . mapM_ $ \b ->
-        modifyVar cam $ orthoCameraCenter .~ (bodyPosition epoch (b ^. bodyId) ^. from dim)
+    -- TODO push into model? Not yet, might change with time-control and auto-follow
+    bind (mapVariable modelSelectedBody model) id cam $ \c b -> forM_ b $ modifyVar c . lookAtBody
     return canvas
-
-drawCanvas :: Variable v => v (OrthoCamera Double) -> TextureObject -> IO ()
-drawCanvas camera t = do
-    cam <- readVar camera
-    drawOrbits epoch bodyIds
-    drawBodies t cam epoch bodyIds
-    GL.flush
   where
+    drawCanvas camera t = do
+        cam <- readVar camera
+        drawOrbits epoch bodyIds
+        drawBodies t cam epoch bodyIds
+        GL.flush
+    lookAtBody body = orthoCameraCenter .~ (bodyPosition epoch (body ^. bodyId) ^. from dim)
     bodyIds = [minBound..]
 
 
-bodyList :: IO BodyList
-bodyList = bodyListNew [bodiesTree] (PolicyNever, PolicyAutomatic)
+bodyList :: Variable v => v UIModel -> IO ScrolledWindow
+bodyList model =
+    bodyListView <$> bodyListNew (mapVariable modelSelectedBody model) [bodiesTree] (PolicyNever, PolicyAutomatic)
+
+bodyDetails :: Bindable v => v UIModel -> IO ScrolledWindow
+bodyDetails model = bodyDetailsNew (mapVariable modelSelectedBody model) (PolicyNever, PolicyAutomatic)
 
 
-bodyDetails :: BodyList -> IO BodyDetails
-bodyDetails l = do
-    result <- bodyDetailsNew (PolicyNever, PolicyAutomatic)
-    void $ bodyListOnSelectionChange l $ mapM_ (bodyDetailsSetBody result)
-    return result
-
-visibilityButtons :: BodyList -> BodyDetails -> IO HBox
-visibilityButtons (BodyList wl _ _) (BodyDetails wd _) = do
+visibilityButtons :: (WidgetClass w, WidgetClass w') => w -> w' -> IO HBox
+visibilityButtons wl wd = do
     buttonBox <- hBoxNew False 2
     buttonList <- visibilityToggleButton "Celestial Bodies" wl
     containerAdd buttonBox buttonList
@@ -62,15 +62,15 @@ visibilityButtons (BodyList wl _ _) (BodyDetails wd _) = do
     containerAdd buttonBox buttonData
     return buttonBox
 
-mainLayout :: Window -> IO ()
-mainLayout win = do
+mainLayout :: Bindable v => v UIModel -> Window -> IO ()
+mainLayout model win = do
     _ <- set win [ windowTitle := "Horbits" ]
-    list <- bodyList
-    details <- bodyDetails list
-    canvas <- orbitsCanvas list
+    list <- bodyList model
+    details <- bodyDetails model
+    canvas <- orbitsCanvas model
     mainBox <- hBoxNew False 2
-    containerAdd mainBox $ bodyListView list
-    containerAdd mainBox $ bodyDetailsView details
+    containerAdd mainBox list
+    containerAdd mainBox details
     containerAdd mainBox canvas
     outerBox <- vBoxNew False 2
     containerAdd outerBox mainBox
