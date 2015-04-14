@@ -12,7 +12,7 @@ import           Horbits.UI.Camera
 data UIModel = UIModel { _modelCamera       :: OrthoCamera Double
                        , _modelSelectedBody :: Maybe Body
                        , _modelTime         :: KerbalInstant
-                       }
+                       } deriving (Show, Eq)
 
 makeLenses ''UIModel
 
