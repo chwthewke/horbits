@@ -26,7 +26,7 @@ mkOrth :: (DOne ~ Div d d, d' ~ Mul DOne d') =>
             Quantity d' (V3 Double) -> Quantity d (V3 Double) -> Quantity d' (V3 Double)
 mkOrth v ref = stabilize $ if norm ref == _0 then v else refUnit `cross` v
   where refUnit = ref ^/ norm ref
-        stabilize v' = if norm v' < 1e-12 *. norm v then dimZero else v' -- TODO dimNearZero
+        stabilize v' = if nearZeroOf (norm v) (norm v') then dimZero else v'
 
 withNorm :: (d' ~ Mul (Div d' d) d, Metric f) => Quantity d (f Double) -> Quantity d' Double -> Quantity d' (f Double)
 withNorm v n =

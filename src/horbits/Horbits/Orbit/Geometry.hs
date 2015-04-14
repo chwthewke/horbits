@@ -39,7 +39,7 @@ eccentricSemiAxes = do
     let b = normalize $ h `cross` a
     return (a, b)
 
--- TODO for this use, can we make good use of the existing raan/arg.pe? -- yes but tests would be great
+-- TODO tests would be great
 circularSemiAxes :: OrbitClass t => t -> (Dimensionless (V3 Double), Dimensionless (V3 Double))
 circularSemiAxes = do
     h <- view orbitAngularMomentumVector

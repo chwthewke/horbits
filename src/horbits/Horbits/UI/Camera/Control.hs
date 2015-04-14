@@ -60,12 +60,7 @@ onMouseMove cam st evCoords = do
 setupMouseControl :: (WidgetClass w, Variable v, RealFloat a, Epsilon a) => w -> v (OrthoCamera a) -> IO [ConnectId w]
 setupMouseControl w cam = do
     st <- newVar (MState [] (0.0, 0.0)) :: IO (IORef MState)
-    widgetAddEvents w
-        [PointerMotionHintMask,
-        Button1MotionMask, Button3MotionMask,
-        ScrollMask,
-        ButtonPressMask, ButtonReleaseMask]
-        -- TODO the last three should be set by the listeners on press/release/scroll
+    widgetAddEvents w [PointerMotionHintMask, Button1MotionMask, Button3MotionMask]
     sequence [
         on w motionNotifyEvent $ tryEvent $ do
             onMouseMove cam st eventCoordinates

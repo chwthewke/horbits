@@ -8,8 +8,8 @@ import           Linear
 
 import           Horbits.UI.Camera
 
-bindCameraToGL :: (RealFloat a, Epsilon a, Variable v) =>
-                    GLDrawingArea -> Source v (OrthoCamera a) -> IO(Int -> Int -> IO ())
+bindCameraToGL :: (RealFloat a, Epsilon a, Show a, Bindable v) =>
+                    GLDrawingArea -> v (OrthoCamera a) -> IO(Int -> Int -> IO ())
 bindCameraToGL gld cam = do
     bind cam orthoCameraMatrix () $ const $ setGLCamera gld
     return resizeViewport

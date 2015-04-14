@@ -31,7 +31,6 @@ makeLensesWith (classyRules & lensClass .~ const (Just (mkName "OrbitClass", mkN
 
 -- Class equivalence
 
--- TODO could this no be useful in the view code? Yes, preciousssss
 _orbitRotation :: OrbitClass t => t -> Rotation Double
 _orbitRotation = do
     raan <- view orbitRightAscensionOfAscendingNode

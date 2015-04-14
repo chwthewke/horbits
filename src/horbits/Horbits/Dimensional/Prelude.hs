@@ -1,9 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TypeFamilies      #-}
 
--- TODO move/rename Horbits.Numeric.Units.....
--- TODO make a prelude?
--- TODO single Linear import
 module Horbits.Dimensional.Prelude(
     module Horbits.Dimensional.Prelude,
     module X)

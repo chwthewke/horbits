@@ -61,7 +61,6 @@ instantToMeanAnomaly orbit instant = ma0 + (instant ^. isoInstant / p) `mod` tau
     ma0 = orbit ^. orbitMeanAnomalyAtEpoch
     p = orbit ^. orbitPeriod
 
--- TODO this might use Geometry.semiAxes instead if we were confident in the degenerate cases...
 trueAnomalyToPositionVector :: OrbitClass t => t -> Dimensionless Double -> Length (V3 Double)
 trueAnomalyToPositionVector = flip $ \ta -> do
     ev <- view orbitEccentricityVector
