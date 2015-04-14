@@ -90,8 +90,11 @@ executable cc
                    src/horbits
   main-is:         Main.hs
   other-modules:   
+                   Horbits.Data.Binding,
+                   Horbits.Data.StateVar,
                    Horbits.UI.Camera,
                    Horbits.UI.Camera.Control,
+                   Horbits.UI.Camera.Internal,
                    Horbits.UI.Camera.Zoom,
                    Horbits.UI.GL.GLCamera,
                    Horbits.UI.GL.GLSetup
@@ -176,6 +179,8 @@ executable sprite
                    src/horbits 
   main-is:         Main.hs
   other-modules:   
+                   Horbits.Data.Binding,
+                   Horbits.Data.StateVar,
                    Horbits.OpenGL.PointSpriteARB,
                    Horbits.UI.Camera,
                    Horbits.UI.Camera.Control,
