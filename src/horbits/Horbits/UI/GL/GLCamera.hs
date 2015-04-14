@@ -3,6 +3,7 @@
 module Horbits.UI.GL.GLCamera(setGLCamera, bindCameraToGL) where
 
 import           Control.Lens
+import           Control.Monad             (void)
 import           Graphics.Rendering.OpenGL
 import           Graphics.UI.Gtk.OpenGL
 import           Linear
@@ -10,10 +11,10 @@ import           Linear
 import           Horbits.Data.Binding
 import           Horbits.UI.Camera
 
-bindCameraToGL :: (RealFloat a, Epsilon a, Show a, HasBinding v (OrthoCamera a)) 
+bindCameraToGL :: (RealFloat a, Epsilon a, Show a, HasBinding v (OrthoCamera a))
                => GLDrawingArea -> v -> IO(Int -> Int -> IO ())
 bindCameraToGL gld cam = do
-    bindEq (mapVar orthoCameraMatrix cam) $ setGLCamera gld
+    void $ bindEq (mapVar orthoCameraMatrix cam) $ setGLCamera gld
     return resizeViewport
   where
     resizeViewport w h = cam $~

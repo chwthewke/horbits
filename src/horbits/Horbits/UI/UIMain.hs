@@ -4,6 +4,7 @@ module Horbits.UI.UIMain where
 
 import           Control.Applicative
 import           Control.Lens                hiding (set)
+import           Control.Monad               (void)
 import           Data.Foldable
 import           Graphics.Rendering.OpenGL   as GL
 import           Graphics.UI.Gtk
@@ -34,7 +35,7 @@ orbitsCanvas model = do
         bodyTex <- bodyTexture
         onGtkGLDraw canvas $ drawCanvas cam bodyTex
     -- TODO push into model? Not yet, might change with time-control and auto-follow
-    bindEq (mapVarG modelSelectedBody model) $ \b -> forM_ b $ \b' -> cam $~ lookAtBody b'
+    void $ bindEq (mapVarG modelSelectedBody model) $ \b -> forM_ b $ \b' -> cam $~ lookAtBody b'
     return canvas
   where
     drawCanvas camera t = do

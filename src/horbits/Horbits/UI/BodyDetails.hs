@@ -100,7 +100,7 @@ bodyDetailsSections selectedBody sections (hp, vp) = do
     scrolledWindowSetPolicy bodyDetailsScroll hp vp
     scrolledWindowAddWithViewport bodyDetailsScroll bodyDetails
     let setBody = forM_ detailsWidgets . flip bodyDetailsSectionSetBody
-    bindEq selectedBody $ mapM_ setBody
+    void $ bindEq selectedBody $ mapM_ setBody
     return bodyDetailsScroll
 
 bodyDetailsNew :: Bindable v (Maybe Body) => v -> (PolicyType, PolicyType) -> IO ScrolledWindow
