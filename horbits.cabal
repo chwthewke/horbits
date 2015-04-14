@@ -25,6 +25,7 @@ executable horbits
                    GLUtil >= 0.8.6,
                    gtk >= 0.12.5.7,
                    gtkglext >= 0.12.5.0,
+                   StateVar >= 1.1.0.0,
                    binding-core >= 0.2.2,
                    binding-gtk >= 0.2.1
   ghc-options:     -Wall -rtsopts
