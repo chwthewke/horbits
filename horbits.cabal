@@ -67,6 +67,7 @@ executable horbits
                    Horbits.UI.GL.GLSetup,
                    Horbits.UI.GL.GLTextures,
                    Horbits.UI.ShowDim,
+                   Horbits.UI.UIMain,
                    Horbits.UI.VisibilityToggle,
                    Paths_horbits
 
@@ -111,11 +112,19 @@ test-suite HorbitsTests
   main-is:         HorbitsTests.hs
   other-modules:   
                    Horbits.Body,
+                   Horbits.Body.Atmosphere,
+                   Horbits.Body.Body,
+                   Horbits.Body.Color,
+                   Horbits.Body.Data,
+                   Horbits.Body.Id,
+                   Horbits.Data.StateVar,
                    Horbits.Data.Variable.State,
+                   Horbits.Dimensional.Internal,
                    Horbits.Dimensional.Prelude,
                    Horbits.KerbalDateTime,
                    Horbits.KerbalDateTimeTest,
                    Horbits.Main,
+                   Horbits.OpenGL.PointSpriteARB,
                    Horbits.Orbit,
                    Horbits.Orbit.Anomaly,
                    Horbits.Orbit.Class,
@@ -135,13 +144,18 @@ test-suite HorbitsTests
                    Horbits.UI.BodyList,
                    Horbits.UI.Camera,
                    Horbits.UI.Camera.Control,
+                   Horbits.UI.Camera.Internal,
                    Horbits.UI.Camera.Zoom,
+                   Horbits.UI.CameraTest,
+                   Horbits.UI.GL.GLBody,
                    Horbits.UI.GL.GLCamera,
                    Horbits.UI.GL.GLIso,
                    Horbits.UI.GL.GLOrbit,
                    Horbits.UI.GL.GLSetup,
+                   Horbits.UI.GL.GLTextures,
                    Horbits.UI.ShowDim,
                    Horbits.UI.ShowDimTest,
+                   Horbits.UI.UIMain,
                    Horbits.UI.VisibilityToggle
   type:            exitcode-stdio-1.0
 

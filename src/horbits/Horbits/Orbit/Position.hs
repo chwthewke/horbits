@@ -56,7 +56,10 @@ _trueToFromEccentric :: Dimensionless Double -> Dimensionless Double -> Dimensio
 _trueToFromEccentric e a = atan2 (sqrt (_1 + e) * sin (a / _2)) (sqrt (_1 - e) * cos (a / _2))
 
 instantToMeanAnomaly :: OrbitClass t => t -> KerbalInstant -> Dimensionless Double
-instantToMeanAnomaly orbit instant = (instant ^. isoInstant / orbit ^. orbitPeriod) `mod` tau
+instantToMeanAnomaly orbit instant = ma0 + (instant ^. isoInstant / p) `mod` tau
+  where
+    ma0 = orbit ^. orbitMeanAnomalyAtEpoch
+    p = orbit ^. orbitPeriod
 
 -- TODO this might use Geometry.semiAxes instead if we were confident in the degenerate cases...
 trueAnomalyToPositionVector :: OrbitClass t => t -> Dimensionless Double -> Length (V3 Double)

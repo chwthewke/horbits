@@ -84,20 +84,23 @@ bodyDetailsSectionNew (DetailsSection title prop details) = do
         Gtk.set box [ widgetVisible := has _Just (b ^? prop) ]
 
 -- Whole details pane
-data BodyDetailsPane = BodyDetailsPane { bodyDetailsPaneView    :: VBox
-                                       , bodyDetailsPaneSetBody :: Body -> IO ()
-                                       }
+data BodyDetails = BodyDetails { bodyDetailsView    :: ScrolledWindow
+                               , bodyDetailsSetBody :: Body -> IO ()
+                               }
 
-bodyDetailsSections :: [DetailsSection] -> IO BodyDetailsPane
-bodyDetailsSections sections = do
-    pane <- vBoxNew False 5
+bodyDetailsSections :: [DetailsSection] -> (PolicyType, PolicyType) -> IO BodyDetails
+bodyDetailsSections sections (hp, vp) = do
+    bodyDetails <- vBoxNew False 5
     detailsWidgets <- forM sections bodyDetailsSectionNew
-    forM_ detailsWidgets (containerAdd pane . bodyDetailsSectionView)
+    forM_ detailsWidgets (containerAdd bodyDetails . bodyDetailsSectionView)
     let setBody = forM_ detailsWidgets . flip bodyDetailsSectionSetBody
-    return $ BodyDetailsPane pane setBody
+    bodyDetailsScroll <- scrolledWindowNew Nothing Nothing
+    scrolledWindowSetPolicy bodyDetailsScroll hp vp
+    scrolledWindowAddWithViewport bodyDetailsScroll bodyDetails
+    return $ BodyDetails bodyDetailsScroll setBody
 
-bodyDetailsPaneNew :: IO BodyDetailsPane
-bodyDetailsPaneNew = bodyDetailsSections detailsSections
+bodyDetailsNew :: (PolicyType, PolicyType) -> IO BodyDetails
+bodyDetailsNew = bodyDetailsSections detailsSections
 
 -- Actual content
 --
