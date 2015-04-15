@@ -10,6 +10,7 @@
 module Horbits.Data.Binding(
     Variable(..), Bindable(..), BindingId(), HasBinding,
     BindingSource(), IORefBindingSource, TVarBindingSource,
+    MappedVariable,
     readVar,
     mapVar, mapVarG, mapVarS, mapVarL,
     bindEq, bindConst,
