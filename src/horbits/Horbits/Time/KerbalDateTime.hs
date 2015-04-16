@@ -5,7 +5,7 @@
 {-# LANGUAGE Rank2Types                 #-}
 {-# LANGUAGE TypeFamilies               #-}
 
-module Horbits.KerbalDateTime
+module Horbits.Time.KerbalDateTime
     (KerbalTimeComponents, KerbalTime'(), KerbalTime, KerbalInstant'(), KerbalInstant, isoFracSeconds,
      timeComponents, secondsFraction, seconds, minutes, hours, days, years, duration, epoch, isoTime, isoInstant)
   where
@@ -55,16 +55,16 @@ instance KerbalTimeComponents KerbalTime' where
     timeComponents = isoFracSeconds . iso toParts fromParts
 
 instance KerbalTimeComponents KerbalInstant' where
-    timeComponents = iso (.-. origin) (origin .+^) . timeComponents
+    timeComponents = relative (origin .-^ epochOffset) . timeComponents
+
+epochOffset :: RealFrac a => KerbalTime' a
+epochOffset = zero & years .~ 1 & days .~ 1
 
 epoch :: RealFrac a => KerbalInstant' a
-epoch = origin & years .~ 1 & days .~ 1
+epoch = origin
 
 duration :: Iso' KerbalTime (Time Double)
 duration = isoFracSeconds . dim
-
-temporalSubdivisions :: Integral a => [a]
-temporalSubdivisions = [ 60, 60, 6, 426 ]
 
 isoFracSeconds :: Iso' (KerbalTime' a) a
 isoFracSeconds = iso fractionalSeconds KerbalTime'
@@ -83,6 +83,9 @@ decompose :: Integral a => DecompState a -> Maybe (a, DecompState a)
 decompose Nothing = Nothing
 decompose (Just (n, [])) = Just (n, Nothing)
 decompose (Just (n, d:ds)) = Just (n `mod` d, Just (n `div` d, ds))
+
+temporalSubdivisions :: Integral a => [a]
+temporalSubdivisions = [ 60, 60, 6, 426 ]
 
 smhdy :: Integral a => a -> [a]
 smhdy n = unfoldr decompose $ Just (n, temporalSubdivisions)

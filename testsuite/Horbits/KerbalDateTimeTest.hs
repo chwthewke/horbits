@@ -12,9 +12,9 @@ import qualified Prelude
 import           Test.Framework
 
 import           Horbits.Dimensional.Prelude
-import           Horbits.KerbalDateTime
 import           Horbits.OrbitEq
 import           Horbits.Rematch
+import           Horbits.Time.KerbalDateTime
 
 (|+|) :: Num a => a -> a -> a
 (|+|) = (Prelude.+)

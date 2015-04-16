@@ -10,9 +10,9 @@ import           Graphics.Rendering.OpenGL
 import           Horbits.Body
 import           Horbits.Data.StateVar
 import           Horbits.Dimensional.Prelude
-import           Horbits.KerbalDateTime
 import           Horbits.OpenGL.PointSpriteARB
 import           Horbits.Orbit
+import           Horbits.Time
 import           Horbits.UI.Camera
 import           Horbits.UI.GL.GLIso
 

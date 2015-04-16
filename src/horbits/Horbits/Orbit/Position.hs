@@ -19,11 +19,11 @@ import           Data.List.NonEmpty          as NE
 
 import           Horbits.Body
 import           Horbits.Dimensional.Prelude
-import           Horbits.KerbalDateTime
 import           Horbits.Orbit.Class
 import           Horbits.Orbit.Data
 import           Horbits.Orbit.Geometry
 import           Horbits.Orbit.Properties
+import           Horbits.Time
 
 data OrbitPosition t = OrbitPosition { _positionOrbit           :: t
                                      , positionDateTime         :: KerbalInstant

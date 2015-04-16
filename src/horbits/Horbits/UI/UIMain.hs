@@ -14,9 +14,9 @@ import           Prelude                     hiding (mapM_)
 import           Horbits.Body
 import           Horbits.Data.Binding
 import           Horbits.Dimensional.Prelude (dim)
-import           Horbits.KerbalDateTime
 import           Horbits.Orbit
 import           Horbits.SolarSystem
+import           Horbits.Time
 import           Horbits.UI.BodyDetails
 import           Horbits.UI.BodyList
 import           Horbits.UI.Camera

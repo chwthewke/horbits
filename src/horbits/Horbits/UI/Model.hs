@@ -6,7 +6,7 @@ import           Control.Lens
 
 import           Horbits.Body
 import           Horbits.Data.Binding
-import           Horbits.KerbalDateTime
+import           Horbits.Time
 import           Horbits.UI.Camera
 
 data UIModel = UIModel { _modelCamera       :: OrthoCamera Double

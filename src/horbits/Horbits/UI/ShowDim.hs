@@ -20,9 +20,9 @@ import           Text.Printf.TH
 
 import           Horbits.Body
 import           Horbits.Dimensional.Prelude hiding (abs, mod, (+), _2)
-import           Horbits.KerbalDateTime
 import           Horbits.Orbit
 import           Horbits.SolarSystem
+import           Horbits.Time
 
 -- Primitives
 

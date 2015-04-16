@@ -11,8 +11,8 @@ import           Linear
 import           Horbits.Body
 import           Horbits.Data.StateVar
 import           Horbits.Dimensional.Prelude   (dim)
-import           Horbits.KerbalDateTime
 import           Horbits.Orbit
+import           Horbits.Time
 import           Horbits.UI.GL.GLIso
 
 drawOrbits :: KerbalInstant -> [BodyId] -> IO ()
