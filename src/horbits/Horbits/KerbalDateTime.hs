@@ -6,7 +6,7 @@
 {-# LANGUAGE TypeFamilies               #-}
 
 module Horbits.KerbalDateTime
-    (KerbalTimeComponents, KerbalTime'(), KerbalTime, KerbalInstant'(), KerbalInstant,
+    (KerbalTimeComponents, KerbalTime'(), KerbalTime, KerbalInstant'(), KerbalInstant, isoFracSeconds,
      timeComponents, secondsFraction, seconds, minutes, hours, days, years, duration, epoch, isoTime, isoInstant)
   where
 
@@ -17,6 +17,7 @@ import           Linear.Vector               (Additive (..))
 
 import           Horbits.Dimensional.Prelude (Time, dim)
 
+-- TODO epoch should be P (KerbalTime' 0), shouldn't it?
 
 newtype KerbalTime' a = KerbalTime' { fractionalSeconds :: a } deriving (Show, Eq, Ord, Functor)
 
@@ -51,7 +52,7 @@ class KerbalTimeComponents t where
     years = timeComponentLens 4
 
 instance KerbalTimeComponents KerbalTime' where
-    timeComponents = isoNum . iso toParts fromParts
+    timeComponents = isoFracSeconds . iso toParts fromParts
 
 instance KerbalTimeComponents KerbalInstant' where
     timeComponents = iso (.-. origin) (origin .+^) . timeComponents
@@ -60,13 +61,13 @@ epoch :: RealFrac a => KerbalInstant' a
 epoch = origin & years .~ 1 & days .~ 1
 
 duration :: Iso' KerbalTime (Time Double)
-duration = isoNum . dim
+duration = isoFracSeconds . dim
 
 temporalSubdivisions :: Integral a => [a]
 temporalSubdivisions = [ 60, 60, 6, 426 ]
 
-isoNum :: Iso' (KerbalTime' a) a
-isoNum = iso fractionalSeconds KerbalTime'
+isoFracSeconds :: Iso' (KerbalTime' a) a
+isoFracSeconds = iso fractionalSeconds KerbalTime'
 
 instance Additive KerbalTime' where
     zero = KerbalTime' 0
@@ -97,7 +98,7 @@ fromParts :: Num a => (a, [Integer]) -> a
 fromParts (f, ips) = f + fromIntegral (fromSmhdy ips)
 
 isoTime :: Iso' (KerbalTime' a) (Time a)
-isoTime = isoNum . dim
+isoTime = isoFracSeconds . dim
 
 isoInstant :: RealFrac a => Iso' (KerbalInstant' a) (Time a)
 isoInstant = relative epoch . isoTime
