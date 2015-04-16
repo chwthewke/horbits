@@ -1,5 +1,5 @@
 
-module Horbits.Time.KerbalClock where
+module Horbits.Time.KerbalClock(KerbalClock(..), evalTimeModel, stopClock, startClock) where
 
 import           Control.Lens
 import           Linear
@@ -11,12 +11,12 @@ import           Horbits.Time.KerbalDateTime
 data TimeFunction = TimeFunction { _runningTimeBase  :: KerbalInstant
                                  , _runningTimeRate  :: Double
                                  , _runningTimeStart :: TimeSpec
-                                 }
+                                 } deriving (Show, Eq)
 
 
 data KerbalClock = StoppedClock KerbalInstant
                  | RunningClock TimeFunction
-
+                 deriving (Show, Eq)
 
 
 runTimeFunction :: TimeFunction -> TimeSpec -> KerbalInstant
