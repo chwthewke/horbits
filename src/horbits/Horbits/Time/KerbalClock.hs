@@ -1,5 +1,8 @@
+{-# LANGUAGE TemplateHaskell #-}
 
-module Horbits.Time.KerbalClock(KerbalClock(..), evalTimeModel, stopClock, startClock) where
+module Horbits.Time.KerbalClock(
+    KerbalClock(..), _StoppedClock, _RunningClock,
+    evalTimeModel, stopClock, startClock) where
 
 import           Control.Lens
 import           Linear
@@ -8,16 +11,16 @@ import           System.Clock
 
 import           Horbits.Time.KerbalDateTime
 
-data TimeFunction = TimeFunction { _runningTimeBase  :: KerbalInstant
-                                 , _runningTimeRate  :: Double
-                                 , _runningTimeStart :: TimeSpec
+data TimeFunction = TimeFunction { _timeFunctionBase  :: KerbalInstant
+                                 , _timeFunctionRate  :: Double
+                                 , _timeFunctionStart :: TimeSpec
                                  } deriving (Show, Eq)
-
 
 data KerbalClock = StoppedClock KerbalInstant
                  | RunningClock TimeFunction
                  deriving (Show, Eq)
 
+makePrisms ''KerbalClock
 
 runTimeFunction :: TimeFunction -> TimeSpec -> KerbalInstant
 runTimeFunction (TimeFunction base rate start) now = base .+^ rate *^ view (from isoFracSeconds) (elapsed start now)

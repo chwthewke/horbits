@@ -70,6 +70,7 @@ executable horbits
                    Horbits.UI.GL.GLTextures,
                    Horbits.UI.Model,
                    Horbits.UI.ShowDim,
+                   Horbits.UI.TimeControl,
                    Horbits.UI.UIMain,
                    Horbits.UI.VisibilityToggle,
                    Paths_horbits
@@ -165,6 +166,7 @@ test-suite HorbitsTests
                    Horbits.UI.Model,
                    Horbits.UI.ShowDim,
                    Horbits.UI.ShowDimTest,
+                   Horbits.UI.TimeControl,
                    Horbits.UI.UIMain,
                    Horbits.UI.VisibilityToggle
   type:            exitcode-stdio-1.0

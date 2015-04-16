@@ -16,8 +16,6 @@ data UIModel = UIModel { _modelCamera       :: OrthoCamera Double
 
 makeLenses ''UIModel
 
--- TODO type synonym in Data.Binding?
-
 uiModelNew :: IO (IORefBindingSource UIModel)
 uiModelNew = newVar $ UIModel (initOrthoCamera (geometricZoom 1.2 (1e6, 1e12))) Nothing (StoppedClock epoch)
 
