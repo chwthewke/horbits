@@ -14,7 +14,34 @@ timeControlWidgetFrozen :: (HasBinding v KerbalClock) => v -> IO HBox
 timeControlWidgetFrozen = undefined
 
 timeControlWidgetEditable :: (HasBinding v KerbalClock) => v -> IO HBox
-timeControlWidgetEditable = undefined
+timeControlWidgetEditable clk = do
+    box <- hBoxNew True 2
+    spinButtonNewWithRange 1 (2**16) 1 >>= containerAdd box
+    spinButtonNewWithRange 1 426 1 >>= containerAdd box
+    spinButtonNewWithRange 0 5 1 >>= containerAdd box
+    spinButtonNewWithRange 0 59 1 >>= containerAdd box
+    spinButtonNewWithRange 0 59 1 >>= containerAdd box
+    spinButtonNewWithRange 0 999 1 >>= containerAdd box
+    return box
 
---yearOf :: Prism' KerbalClock Integer
---yearOf = _StoppedClock . years
+yearOf :: Traversal' KerbalClock Integer
+yearOf = _StoppedClock . years
+
+dayOf :: Traversal' KerbalClock Integer
+dayOf = _StoppedClock . days
+
+hourOf :: Traversal' KerbalClock Integer
+hourOf = _StoppedClock . hours
+
+minuteOf :: Traversal' KerbalClock Integer
+minuteOf = _StoppedClock . minutes
+
+secondsOf :: Traversal' KerbalClock Integer
+secondsOf = _StoppedClock . seconds
+
+secondFractionOf :: Traversal' KerbalClock Double
+secondFractionOf = _StoppedClock . secondsFraction
+
+--data EditableClockWidget {
+--                         ,
+--                         }
