@@ -53,10 +53,10 @@ trueToEccentricAnomaly :: OrbitClass t => t -> Dimensionless Double -> Dimension
 trueToEccentricAnomaly orbit = _trueToFromEccentric (negate $ orbit ^. orbitEccentricity)
 
 _trueToFromEccentric :: Dimensionless Double -> Dimensionless Double -> Dimensionless Double
-_trueToFromEccentric e a = atan2 (sqrt (_1 + e) * sin (a / _2)) (sqrt (_1 - e) * cos (a / _2))
+_trueToFromEccentric e a = _2 * atan2 (sqrt (_1 + e) * sin (a / _2)) (sqrt (_1 - e) * cos (a / _2))
 
 instantToMeanAnomaly :: OrbitClass t => t -> KerbalInstant -> Dimensionless Double
-instantToMeanAnomaly orbit instant = ma0 + (instant ^. isoInstant / p) `mod` tau
+instantToMeanAnomaly orbit instant = (ma0 + (instant ^. isoInstant / p * tau)) `mod` tau
   where
     ma0 = orbit ^. orbitMeanAnomalyAtEpoch
     p = orbit ^. orbitPeriod
