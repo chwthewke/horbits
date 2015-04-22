@@ -7,7 +7,11 @@
 {-# LANGUAGE UndecidableInstances      #-}
 
 
-module Horbits.Data.Binding where
+module Horbits.Data.Binding(
+    module Horbits.Data.Binding,
+    module Horbits.Data.StateVar,
+    module Data.StateVar)
+  where
 
 import           Control.Lens
 import           Control.Monad
@@ -17,6 +21,9 @@ import           Data.IORef
 import           Data.StateVar
 import           GHC.Conc
 
+import           Horbits.Data.StateVar
+
+import           Debug.Trace
 
 class (HasGetter v a, HasUpdate v a a) => Variable v a | v -> a where
     newVar :: MonadIO m => a -> m v
@@ -33,12 +40,26 @@ class HasGetter v a => Bindable v a | v -> a where
          -> (a -> a -> IO ())
          -> m ()
 
+readVar :: (HasGetter v a, MonadIO m) => v -> m a
+readVar = get
 
 newtype WrappedGetter a b = WrappedGetter (Getter a b)
 newtype WrappedSetter a b = WrappedSetter (Setter' a b)
 newtype WrappedLens a b = WrappedLens (Lens' a b)
 
 data MappedVariable v o a b = MappedVariable v (o a b)
+
+mapVar :: (a -> b) -> v -> MappedVariable v WrappedGetter a b
+mapVar f = mapVarG (to f)
+
+mapVarG :: Getter a b -> v -> MappedVariable v WrappedGetter a b
+mapVarG g v = MappedVariable v $ WrappedGetter g
+
+mapVarS :: Setter' a b -> v -> MappedVariable v WrappedSetter a b
+mapVarS g v = MappedVariable v $ WrappedSetter g
+
+mapVarL :: Lens' a b -> v -> MappedVariable v WrappedLens a b
+mapVarL l v = MappedVariable v $ WrappedLens l
 
 instance HasGetter v a => HasGetter (MappedVariable v WrappedGetter a b) b where
     get (MappedVariable a (WrappedGetter g)) = getThrough g a
@@ -69,6 +90,9 @@ instance HasUpdate v a a => HasUpdate (MappedVariable v WrappedLens a b) b b whe
 through :: (v -> (a -> a) -> m ()) -> Setter' a b -> v -> (b -> b) -> m ()
 through o s v f = v `o` (s %~ f)
 
+instance Bindable v a => Bindable (MappedVariable v WrappedGetter a b) b where
+    bind (MappedVariable a (WrappedGetter g)) = bindThrough g a
+
 instance Bindable v a => Bindable (MappedVariable v WrappedLens a b) b where
     bind (MappedVariable a (WrappedLens g)) = bindThrough g a
 
@@ -88,6 +112,15 @@ data Binding a = Binding (a -> a -> IO ())
 data BindingSource v a b = (HasGetter v a, HasUpdate v a a, Variable b [Binding a])
                          => BindingSource v b
 
+type IORefBindingSource a = BindingSource (IORef a) a (IORef [Binding a])
+type TVarBindingSource a = BindingSource (TVar a) a (TVar [Binding a])
+
+class (HasGetter v a, HasUpdate v a a, Bindable v a) => HasBinding v a
+
+instance HasBinding (BindingSource v a b) a
+
+instance HasBinding v a => HasBinding (MappedVariable v WrappedLens a b) b
+
 mkSource :: (HasGetter v a, HasUpdate v a a, Variable b [Binding a]) => v -> IO (BindingSource v a b)
 mkSource v = do
     bindings <- newVar []
@@ -102,6 +135,9 @@ instance HasSetter (BindingSource v a b) a where
         liftIO $ update s
 
 instance HasUpdate (BindingSource v a b) a a
+
+instance (Variable v a, Variable b [Binding a]) => Variable (BindingSource v a b) a where
+    newVar v = newVar v >>= liftIO . mkSource
 
 update :: BindingSource v a b -> IO ()
 update (BindingSource v b) = do

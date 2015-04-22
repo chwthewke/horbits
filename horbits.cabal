@@ -36,6 +36,7 @@ executable horbits
                    Horbits.Body.Color,
                    Horbits.Body.Data,
                    Horbits.Body.Id,
+                   Horbits.Data.Binding,
                    Horbits.Data.StateVar,
                    Horbits.Dimensional.Internal,
                    Horbits.Dimensional.Prelude,
