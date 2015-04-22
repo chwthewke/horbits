@@ -4,6 +4,8 @@ module Horbits.UI.UIMain where
 
 import           Control.Applicative
 import           Control.Lens                hiding (set)
+import           Control.Monad               (void)
+import           Control.Monad.IO.Class
 import           Graphics.Rendering.OpenGL   as GL
 import           Graphics.UI.Gtk
 import           Graphics.UI.Gtk.OpenGL
@@ -14,6 +16,7 @@ import           Horbits.Data.Binding
 import           Horbits.SolarSystem
 import           Horbits.UI.BodyDetails
 import           Horbits.UI.BodyList
+import           Horbits.UI.Camera
 import           Horbits.UI.GL.GLBody
 import           Horbits.UI.GL.GLOrbit
 import           Horbits.UI.GL.GLSetup
@@ -82,3 +85,8 @@ mainLayout model win = do
     visibilityBar <- visibilityButtons list details
     boxPackEnd outerBox visibilityBar PackNatural 0
     containerAdd win outerBox
+    void $ on win keyPressEvent $ tryEvent $ do
+        [Control] <- eventModifier
+        "k" <- eventKeyName
+        liftIO $ logCamera (mapVarG modelCamera model)
+
