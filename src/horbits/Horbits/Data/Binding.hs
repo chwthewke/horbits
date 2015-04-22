@@ -8,7 +8,11 @@
 
 
 module Horbits.Data.Binding(
-    module Horbits.Data.Binding,
+    Variable(..), Bindable(..), BindingId(), HasBinding,
+    BindingSource(), IORefBindingSource, TVarBindingSource,
+    readVar,
+    mapVar, mapVarG, mapVarS, mapVarL,
+    bindEq, bindConst,
     module Horbits.Data.StateVar,
     module Data.StateVar)
   where
@@ -17,6 +21,8 @@ import           Control.Lens
 import           Control.Monad
 import           Control.Monad.IO.Class
 import           Data.IORef
+import           Data.Map               (Map)
+import qualified Data.Map               as M
 import           Data.StateVar
 import           GHC.Conc
 
@@ -35,7 +41,11 @@ class HasGetter v a => Bindable v a | v -> a where
     bind :: MonadIO m
          => v
          -> (Maybe a -> a -> IO ())
-         -> m ()
+         -> m BindingId
+    unbind :: MonadIO m
+           => v
+           -> BindingId
+           -> m ()
 
 readVar :: (HasGetter v a, MonadIO m) => v -> m a
 readVar = get
@@ -89,28 +99,32 @@ through o s v f = v `o` (s %~ f)
 
 instance Bindable v a => Bindable (MappedVariable v WrappedGetter a b) b where
     bind (MappedVariable a (WrappedGetter g)) = bindThrough g a
+    unbind (MappedVariable a _) = unbind a
 
 instance Bindable v a => Bindable (MappedVariable v WrappedLens a b) b where
     bind (MappedVariable a (WrappedLens g)) = bindThrough g a
+    unbind (MappedVariable a _) = unbind a
 
-bindThrough :: (Bindable v a, MonadIO m) => Getter a b -> v -> (Maybe b -> b -> IO ()) -> m ()
+bindThrough :: (Bindable v a, MonadIO m) => Getter a b -> v -> (Maybe b -> b -> IO ()) -> m BindingId
 bindThrough g v f = bind v $ \old new -> f (fmap (view g) old) (view g new)
 
-bindConst :: (Bindable v a, MonadIO m) => v -> (a -> IO ()) -> m ()
+bindConst :: (Bindable v a, MonadIO m) => v -> (a -> IO ()) -> m BindingId
 bindConst v = bind v . const
 
-bindEq :: (Eq a, Bindable v a, MonadIO m) => v -> (a -> IO ()) -> m ()
+bindEq :: (Eq a, Bindable v a, MonadIO m) => v -> (a -> IO ()) -> m BindingId
 bindEq v f = bind v $ \old new -> unless (old == Just new) (f new)
 
 -- Source
 
 data Binding a = Binding (Maybe a -> a -> IO ())
 
-data BindingSource v a b = (HasGetter v a, HasUpdate v a a, Variable b [Binding a])
+data BindingId = BindingId Int
+
+data BindingSource v a b = (HasGetter v a, HasUpdate v a a, Variable b (Map Int (Binding a)))
                          => BindingSource v b
 
-type IORefBindingSource a = BindingSource (IORef a) a (IORef [Binding a])
-type TVarBindingSource a = BindingSource (TVar a) a (TVar [Binding a])
+type IORefBindingSource a = BindingSource (IORef a) a (IORef (Map Int (Binding a)))
+type TVarBindingSource a = BindingSource (TVar a) a (TVar (Map Int (Binding a)))
 
 class (HasGetter v a, HasUpdate v a a, Bindable v a) => HasBinding v a
 
@@ -118,9 +132,9 @@ instance Show a => HasBinding (BindingSource v a b) a
 
 instance HasBinding v a => HasBinding (MappedVariable v WrappedLens a b) b
 
-mkSource :: (HasGetter v a, HasUpdate v a a, Variable b [Binding a]) => v -> IO (BindingSource v a b)
+mkSource :: (HasGetter v a, HasUpdate v a a, Variable b (Map Int (Binding a))) => v -> IO (BindingSource v a b)
 mkSource v = do
-    bindings <- newVar []
+    bindings <- newVar $ M.fromList []
     return $ BindingSource v bindings
 
 instance HasGetter (BindingSource v a b) a where
@@ -134,19 +148,22 @@ instance Show a => HasSetter (BindingSource v a b) a where
 
 instance Show a => HasUpdate (BindingSource v a b) a a
 
-instance (Show a, Variable v a, Variable b [Binding a]) => Variable (BindingSource v a b) a where
+instance (Show a, Variable v a, Variable b (Map Int (Binding a))) => Variable (BindingSource v a b) a where
     newVar v = newVar v >>= liftIO . mkSource
 
 update :: BindingSource v a b -> a -> IO ()
 update (BindingSource v b) previous = do
     bs <- get b
     a <- get v
-    forM_ bs $ \(Binding f) -> f (Just previous) a
+    forM_ (M.elems bs) $ \(Binding f) -> f (Just previous) a
 
 instance Bindable (BindingSource v a b) a where
-  bind (BindingSource v b) f = do
-    b $~ (Binding f :)
-    a <- get v
-    liftIO $ f Nothing a
-
+    bind (BindingSource v b) f = do
+        bs <- get b
+        let i = 1 + maybe 0 (fst . fst) (M.maxViewWithKey bs)
+        b $= M.insert i (Binding f) bs
+        a <- get v
+        liftIO $ f Nothing a
+        return $ BindingId i
+    unbind (BindingSource _ b) (BindingId i) = b $~ M.delete i
 

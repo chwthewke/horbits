@@ -70,6 +70,9 @@ executable horbits
                    Horbits.UI.UIMain,
                    Horbits.UI.VisibilityToggle,
                    Paths_horbits
+  extensions:      
+                   FlexibleContexts, 
+                   MultiParamTypeClasses
 
 executable cc
   build-depends:   
