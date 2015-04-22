@@ -81,7 +81,7 @@ mainLayout model win = do
     boxPackEnd canvasBox canvas PackGrow 0
     containerAdd mainBox canvasBox
     outerBox <- vBoxNew False 2
-    boxPackStart outerBox mainBox PackRepel 0
+    boxPackStart outerBox mainBox PackGrow 0
     visibilityBar <- visibilityButtons list details
     boxPackEnd outerBox visibilityBar PackNatural 0
     containerAdd win outerBox
