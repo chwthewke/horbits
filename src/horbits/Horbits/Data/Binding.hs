@@ -16,14 +16,11 @@ module Horbits.Data.Binding(
 import           Control.Lens
 import           Control.Monad
 import           Control.Monad.IO.Class
-import           Data.Function
 import           Data.IORef
 import           Data.StateVar
 import           GHC.Conc
 
 import           Horbits.Data.StateVar
-
-import           Debug.Trace
 
 class (HasGetter v a, HasUpdate v a a) => Variable v a | v -> a where
     newVar :: MonadIO m => a -> m v
@@ -37,7 +34,7 @@ instance Variable (TVar a) a where
 class HasGetter v a => Bindable v a | v -> a where
     bind :: MonadIO m
          => v
-         -> (a -> a -> IO ())
+         -> (Maybe a -> a -> IO ())
          -> m ()
 
 readVar :: (HasGetter v a, MonadIO m) => v -> m a
@@ -96,18 +93,18 @@ instance Bindable v a => Bindable (MappedVariable v WrappedGetter a b) b where
 instance Bindable v a => Bindable (MappedVariable v WrappedLens a b) b where
     bind (MappedVariable a (WrappedLens g)) = bindThrough g a
 
-bindThrough :: (Bindable v a, MonadIO m) => Getter a b -> v -> (b -> b -> IO ()) -> m ()
-bindThrough g v f = bind v (f `on` view g)
+bindThrough :: (Bindable v a, MonadIO m) => Getter a b -> v -> (Maybe b -> b -> IO ()) -> m ()
+bindThrough g v f = bind v $ \old new -> f (fmap (view g) old) (view g new)
 
 bindConst :: (Bindable v a, MonadIO m) => v -> (a -> IO ()) -> m ()
 bindConst v = bind v . const
 
 bindEq :: (Eq a, Bindable v a, MonadIO m) => v -> (a -> IO ()) -> m ()
-bindEq v f = bind v $ \old new -> unless (old == new) (f new)
+bindEq v f = bind v $ \old new -> unless (old == Just new) (f new)
 
 -- Source
 
-data Binding a = Binding (a -> a -> IO ())
+data Binding a = Binding (Maybe a -> a -> IO ())
 
 data BindingSource v a b = (HasGetter v a, HasUpdate v a a, Variable b [Binding a])
                          => BindingSource v b
@@ -117,7 +114,7 @@ type TVarBindingSource a = BindingSource (TVar a) a (TVar [Binding a])
 
 class (HasGetter v a, HasUpdate v a a, Bindable v a) => HasBinding v a
 
-instance HasBinding (BindingSource v a b) a
+instance Show a => HasBinding (BindingSource v a b) a
 
 instance HasBinding v a => HasBinding (MappedVariable v WrappedLens a b) b
 
@@ -129,26 +126,27 @@ mkSource v = do
 instance HasGetter (BindingSource v a b) a where
     get (BindingSource v _) = get v
 
-instance HasSetter (BindingSource v a b) a where
+instance Show a => HasSetter (BindingSource v a b) a where
     ($=) s@(BindingSource v _) a = do
+        previous <- get v
         v $= a
-        liftIO $ update s
+        liftIO $ update s previous
 
-instance HasUpdate (BindingSource v a b) a a
+instance Show a => HasUpdate (BindingSource v a b) a a
 
-instance (Variable v a, Variable b [Binding a]) => Variable (BindingSource v a b) a where
+instance (Show a, Variable v a, Variable b [Binding a]) => Variable (BindingSource v a b) a where
     newVar v = newVar v >>= liftIO . mkSource
 
-update :: BindingSource v a b -> IO ()
-update (BindingSource v b) = do
+update :: BindingSource v a b -> a -> IO ()
+update (BindingSource v b) previous = do
     bs <- get b
     a <- get v
-    forM_ bs $ \(Binding f) -> f a a
+    forM_ bs $ \(Binding f) -> f (Just previous) a
 
 instance Bindable (BindingSource v a b) a where
   bind (BindingSource v b) f = do
     b $~ (Binding f :)
     a <- get v
-    liftIO $ f a a
+    liftIO $ f Nothing a
 
 
