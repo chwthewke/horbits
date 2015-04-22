@@ -33,7 +33,7 @@ colorAndOrbit b = (,) <$> b ^? bodyUiColor <*> b ^? bodyOrbit
 -- | drawEllipse3d color center semiMajor semiMinor
 drawEllipse3d :: RgbaColor Float -> V3 Double -> V3 Double -> V3 Double -> IO ()
 drawEllipse3d c o a b = do
-    color $ c ^. glColorF
+    color $ (c & rgbaColorA .~ 1) ^. glColorF
     withNURBSObj () $ \nurbsObj -> do
         setSamplingMethod nurbsObj $ PathLength 4
         nurbsBeginEndCurve nurbsObj $
