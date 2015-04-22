@@ -1,5 +1,4 @@
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE Rank2Types #-}
 
 module HorbitsCC.CameraControlExploration(basesAndCameraControls, ZoomModel(..), linearZoom, geometricZoom) where
@@ -12,7 +11,6 @@ import           Graphics.Rendering.OpenGL
 import           Graphics.UI.Gtk           hiding (set)
 import           Linear
 import           Prelude                   hiding (foldr, mapM_)
-import           Text.Printf.TH
 
 import           Horbits.Data.Binding
 import           Horbits.UI.Camera
@@ -55,15 +53,6 @@ drawBases = do
     drawSimplex (Vertex4 0.0 0.0 2.0 0.7)
     drawSimplex (Vertex4 0.0 0.0 (-2.0) 0.7)
 
-degrees :: (Floating a) => Iso' a a
-degrees = iso (* (180 / pi)) (* (pi / 180))
-
-orthoCameraColatitudeDeg :: Floating a => Lens' (OrthoCamera a) a
-orthoCameraColatitudeDeg = orthoCameraColatitude . degrees
-
-orthoCameraLongitudeDeg :: Floating a => Lens' (OrthoCamera a) a
-orthoCameraLongitudeDeg = orthoCameraLongitude . degrees
-
 basesAndCameraControls :: Window -> IO ()
 basesAndCameraControls window = do
     cam <- newVar $ initOrthoCamera (linearZoom 1 (1, 20)) :: IO (IORefBindingSource (OrthoCamera Double))
@@ -95,17 +84,4 @@ boundSpinButton src prop lab min' max' step def = do
     _ <- labelNew (Just lab) >>= containerAdd box
     containerAdd box spb
     return box
-
-logCamera :: (HasGetter v (OrthoCamera a), Show a, RealFloat a, Epsilon a) => v -> IO ()
-logCamera cam = do
-    c <- readVar cam
-    putStrLn $ [s|O: %.2f %.2f %.2f|] (c ^. orthoCameraCenter . _x)
-                                      (c ^. orthoCameraCenter . _y)
-                                      (c ^. orthoCameraCenter . _z)
-    putStrLn $ [s|r: %.2f th: %.2f la: %.2f|] (c ^. orthoCameraScale)
-                                              (c ^. orthoCameraLongitudeDeg)
-                                              (c ^. orthoCameraColatitudeDeg)
-    mapM_ showMRow . orthoCameraMatrix $ c
-  where
-    showMRow (V4 x y z w) = putStrLn $ [s|%.2f %.2f %.2f %.2f|] x y z w
 

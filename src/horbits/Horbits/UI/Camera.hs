@@ -9,4 +9,5 @@ import           Horbits.UI.Camera.Internal as X hiding (invRotateColat, invRota
                                                   _orthoCameraColatitude, _orthoCameraLongitude, _orthoCameraScale,
                                                   _orthoCameraViewportHeight, _orthoCameraViewportWidth,
                                                   _orthoCameraZoomModel)
+import           Horbits.UI.Camera.Trace    as X
 import           Horbits.UI.Camera.Zoom     as X

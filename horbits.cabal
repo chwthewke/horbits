@@ -61,6 +61,7 @@ executable horbits
                    Horbits.UI.Camera,
                    Horbits.UI.Camera.Control,
                    Horbits.UI.Camera.Internal,
+                   Horbits.UI.Camera.Trace,
                    Horbits.UI.Camera.Zoom,
                    Horbits.UI.GL.GLBody,
                    Horbits.UI.GL.GLCamera,
@@ -102,6 +103,7 @@ executable cc
                    Horbits.UI.Camera,
                    Horbits.UI.Camera.Control,
                    Horbits.UI.Camera.Internal,
+                   Horbits.UI.Camera.Trace,
                    Horbits.UI.Camera.Zoom,
                    Horbits.UI.GL.GLCamera,
                    Horbits.UI.GL.GLSetup
@@ -155,6 +157,7 @@ test-suite HorbitsTests
                    Horbits.UI.Camera,
                    Horbits.UI.Camera.Control,
                    Horbits.UI.Camera.Internal,
+                   Horbits.UI.Camera.Trace,
                    Horbits.UI.Camera.Zoom,
                    Horbits.UI.CameraTest,
                    Horbits.UI.GL.GLBody,
